@@ -168,10 +168,14 @@ const PaymentButton: FC<PaymentButton> = ({
 									coinLists={[]}
 									setCoin={(coin: any) => {}}
 								/>
-							);
+                            );
+                        
+                        return (<></>)
 					})()}
 				</div>
 			</div>
 		</>
 	);
 };
+
+export default PaymentButton;
