@@ -1,7 +1,7 @@
 import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 import { WagmiConfig, configureChains, createConfig } from 'wagmi'
-import { fantom, polygon } from 'wagmi/chains'
+import { fantom, fantomTestnet, polygon } from 'wagmi/chains'
 import { publicProvider } from 'wagmi/providers/public'
 import {
     getDefaultWallets,
@@ -20,7 +20,7 @@ const myTheme = merge(darkTheme(), {
 } as Theme);
   
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [fantom, polygon],
+  [fantomTestnet, polygon],
   [publicProvider()],
 )
   

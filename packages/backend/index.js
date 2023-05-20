@@ -5,6 +5,8 @@ const { ethers, BigNumber, utils } = require("ethers");
 const bp = require("body-parser");
 require("dotenv").config()
 
+const PaymentManagerABI = require("./abi/PaymentManagerFacet.json");
+
 const asyncMiddleware = fn =>
   (req, res, next) => {
     Promise.resolve(fn(req, res, next))
@@ -18,6 +20,12 @@ const contracts = {
     250: {
         diamond: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
     },
+};
+
+const RPCs = {
+    250: "https://rpcapi.fantom.network",
+    56: "https://bsc-dataseed.binance.org",
+    137: "https://rpc-mainnet.maticvigil.com",
 };
 
 const sleep = async (ms) => {
@@ -65,7 +73,7 @@ app.get(
     })
 );
 
-app.post("/chain/:paymentManagerChain/getUserInfo/:user/:fromChain",
+app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromChain",
     asyncMiddleware(async (req, res, next) => {
         if (tableChangeBlockchain[req.params.fromChain] == undefined)
             return res
@@ -90,7 +98,23 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:user/:fromChain",
 
         let toDelete = {};
 
-        const tokenOutAddress = req.body.tokenOutAddress;
+        const PROVIDER = new ethers.providers.JsonRpcProvider(
+            RPCs[req.params.paymentManagerChain]
+        );
+
+        const paymentManager = new ethers.Contract(
+            contracts[req.params.paymentManagerChain].diamond,
+            PaymentManagerABI,
+            PROVIDER
+        );
+
+        const paymentManagerInfo = await paymentManager.paymentManagers(
+            req.params.paymentManagerId
+        );
+
+        //const tokenOutAddress = paymentManagerInfo.paymentToken;
+
+        const tokenOutAddress = "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75";
         const tokenOutPrice = req.body.tokenOutPrice;
 
         for (let i = 0; i < coinData.length; i++) {

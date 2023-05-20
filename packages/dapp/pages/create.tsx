@@ -2,9 +2,16 @@ import Image from 'next/image'
 import Layout from '@components/Layout'
 import { useState } from 'react'
 import { useNetwork, useContractWrite } from "wagmi"
+import { PaymentManagerFacet__factory } from '@context/Types'
 
 const Home = () => {
     const [paymentManagers, setPaymentManagers] = useState([])
+
+    const { write, isError, error } = useContractWrite({
+        address: '0xA73a0d640d421e0800FDc041DA7bA954605E95D6',
+        abi: PaymentManagerFacet__factory.abi,
+        functionName: 'createPaymentManager',
+    })
 
     const handleForm = async (e: any) => {
         e.preventDefault()
@@ -17,9 +24,10 @@ const Home = () => {
 
         console.log(token)
 
-        const { wait } = useContractWrite({
-
-        })
+        await write({
+            //@ts-ignore
+            args: [name, token, treasury],
+        });
     }
 
     return (
@@ -27,8 +35,8 @@ const Home = () => {
             <div className='space-y-4'>
                 <h2 className='text-2xl'>Create your Payment Manager</h2>
 
-                <div className='w-full flex justify-center pt-5'>
-                    <form className='max-w-xl w-full space-y-4 border-2 p-5 rounded-xl' onSubmit={handleForm}>
+                <div className='flex justify-center w-full pt-5'>
+                    <form className='w-full max-w-xl p-5 space-y-4 border-2 rounded-xl' onSubmit={handleForm}>
                         {/* Name */}
                         <div className="form-control">
                             <label className="label">
@@ -41,7 +49,7 @@ const Home = () => {
                             <label className="label">
                                 <span className="label-text">Payment token</span>
                             </label>
-                            <input type="text" name='token' placeholder="0x54ef6..."  pattern="0x[a-fA-F0-9]{40}" className="input input-bordered w-full" required />
+                            <input type="text" name='token' placeholder="0x54ef6..."  pattern="0x[a-fA-F0-9]{40}" className="w-full input input-bordered" required />
                         </div>
 
                         <div className="form-control">
@@ -50,6 +58,8 @@ const Home = () => {
                             </label>
                             <input type="text" name='treasury' placeholder="0x69ef6..."  pattern="0x[a-fA-F0-9]{40}" className="input input-bordered" required />
                         </div>
+
+                        {isError && (<span className='text-error'>{error}</span>)}
                         
                         <button className='btn btn-primary !mt-8'>Create !</button>
                     </form>
