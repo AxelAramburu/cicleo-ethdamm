@@ -20,7 +20,7 @@ const myTheme = merge(darkTheme(), {
 } as Theme);
   
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [fantomTestnet, polygon],
+  [fantomTestnet, fantom],
   [publicProvider()],
 )
   

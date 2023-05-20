@@ -149,7 +149,6 @@ const PaymentButton: FC<PaymentButton> = ({
 
 		setCoinLists(userInfo.data.coinList);
 		setIsLoaded(true);
-		//setCoinLists(userInfo.data.coinList);
 	};
 
 	useEffect(() => {

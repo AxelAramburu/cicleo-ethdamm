@@ -34,6 +34,11 @@ module.exports = {
             url: 'https://rpc.testnet.fantom.network/',
             accounts: [process.env.PRIVATE_KEY],
             chainId: 4002,
+        },
+        fantom: {
+            url: 'https://rpc.ftm.tools/',
+            accounts: [process.env.PRIVATE_KEY],
+            chainId: 250,
         }
     },
     settings: {

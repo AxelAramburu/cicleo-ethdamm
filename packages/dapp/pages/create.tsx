@@ -5,10 +5,8 @@ import { useNetwork, useContractWrite } from "wagmi"
 import { PaymentManagerFacet__factory } from '@context/Types'
 
 const Home = () => {
-    const [paymentManagers, setPaymentManagers] = useState([])
-
     const { write, isError, error } = useContractWrite({
-        address: '0x471e8591f720aD2fCc360081a60712F9f6138665',
+        address: '0xA73a0d640d421e0800FDc041DA7bA954605E95D6',
         abi: PaymentManagerFacet__factory.abi,
         functionName: 'createPaymentManager',
     })
