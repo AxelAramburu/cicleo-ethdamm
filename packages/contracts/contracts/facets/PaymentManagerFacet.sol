@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
 import { IRouter, SwapDescription, IOpenOceanCaller } from "../interfaces/IOpenOcean.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
+import {LibAdmin}   from "../libraries/LibAdmin.sol";
 
 struct PaymentManagerData {
     /// @notice Address of the treasury account
     address treasuryAccount;
     /// @notice Token of the backed payment
     IERC20 paymentToken;
-    /// @notice Owner
-    address owner;
+    /// @notice Name of the payment manager
+    string name;
 }
 
 contract PaymentManagerFacet {
@@ -52,17 +53,17 @@ contract PaymentManagerFacet {
     //-----Modifiers -----------------
 
     modifier onlyOwner(uint256 paymentManagerId) {
-        require(getPaymentManagerInfo(paymentManagerId).owner == msg.sender, "Not owner");
+        require(LibAdmin.getSecurity().verifyIfOwner(msg.sender, paymentManagerId), "Not owner");
         _;
     }
 
 
     //----External View function--------------
 
-    function getPaymentManagerInfo(uint256 subscriptionId) public view returns (PaymentManagerData memory) {
+    function getPaymentManagerInfo(uint256 subscriptionId) public view returns (PaymentManagerData memory, uint8 tokenDecimals, string memory tokenSymbol) {
         Storage storage ds = getStorage();
-        return ds.paymentManagers[subscriptionId];
-    }  
+        return (ds.paymentManagers[subscriptionId], ds.paymentManagers[subscriptionId].paymentToken.decimals(), ds.paymentManagers[subscriptionId].paymentToken.symbol());
+    }
 
     //----External Functions -----------------------
 
@@ -71,17 +72,18 @@ contract PaymentManagerFacet {
         address paymentToken,
         address treasuryAccount
     ) external {
-        LibDiamond.enforceIsContractOwner();
         Storage storage ds = getStorage();
 
         uint256 paymentManagerId = ds.paymentManagerCount + 1;
         ds.paymentManagers[paymentManagerId] = PaymentManagerData({
             treasuryAccount: treasuryAccount,
             paymentToken: IERC20(paymentToken),
-            owner: msg.sender
+            name: name
         });
 
         ds.paymentManagerCount = paymentManagerId;
+
+        LibAdmin.getSecurity().mintNft(msg.sender, paymentManagerId);
 
         emit PaymentManagerCreated(paymentManagerId, msg.sender, paymentToken, treasuryAccount);
     }
@@ -106,17 +108,6 @@ contract PaymentManagerFacet {
         ds.paymentManagers[ids].treasuryAccount = newTreasury;
         
         emit PaymentManagerTreasuryChanged(ids, newTreasury);
-    }
-
-    function sendPaymentManagerOwnership(
-        uint256 ids,
-        address newOwner
-    ) external onlyOwner(ids) {
-        Storage storage ds = getStorage();
-
-        ds.paymentManagers[ids].owner = newOwner;
-        
-        emit PaymentManagerOwnerChanged(ids, newOwner);
     }
 
     //----Diamond storage functions-------------------------------------//

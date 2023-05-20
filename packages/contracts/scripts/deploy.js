@@ -9,9 +9,9 @@ async function deployDiamond() {
 
     // deploy DiamondCutFacet
     const DiamondCutFacet = await ethers.getContractFactory("DiamondCutFacet");
-    /* const diamondCutFacet = await DiamondCutFacet.deploy();
-    await diamondCutFacet.deployed(); */
-    const diamondCutFacet = await ethers.getContractAt("DiamondCutFacet", "0x4fd2B821d1D5a2fd6199B1cBAc884C9e22ae6962")
+    const diamondCutFacet = await DiamondCutFacet.deploy();
+    await diamondCutFacet.deployed();
+    //const diamondCutFacet = await ethers.getContractAt("DiamondCutFacet", "0x4fd2B821d1D5a2fd6199B1cBAc884C9e22ae6962")
     console.log("DiamondCutFacet deployed:", diamondCutFacet.address);
 
     // deploy Diamond

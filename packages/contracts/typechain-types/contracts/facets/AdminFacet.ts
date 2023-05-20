@@ -31,6 +31,7 @@ export interface AdminFacetInterface extends utils.Interface {
   functions: {
     "owner()": FunctionFragment;
     "setBridgeExecutor(address)": FunctionFragment;
+    "setSecurity(address)": FunctionFragment;
     "setTaxAccount(address)": FunctionFragment;
     "setTaxPercentage(uint16)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -40,6 +41,7 @@ export interface AdminFacetInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "owner"
       | "setBridgeExecutor"
+      | "setSecurity"
       | "setTaxAccount"
       | "setTaxPercentage"
       | "transferOwnership"
@@ -48,6 +50,10 @@ export interface AdminFacetInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setBridgeExecutor",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setSecurity",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
@@ -66,6 +72,10 @@ export interface AdminFacetInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setBridgeExecutor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setSecurity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -134,6 +144,11 @@ export interface AdminFacet extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    setSecurity(
+      _security: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     setTaxAccount(
       _taxAccount: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -157,6 +172,11 @@ export interface AdminFacet extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  setSecurity(
+    _security: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   setTaxAccount(
     _taxAccount: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -177,6 +197,11 @@ export interface AdminFacet extends BaseContract {
 
     setBridgeExecutor(
       _bridgeExecutor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setSecurity(
+      _security: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -215,6 +240,11 @@ export interface AdminFacet extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    setSecurity(
+      _security: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     setTaxAccount(
       _taxAccount: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -236,6 +266,11 @@ export interface AdminFacet extends BaseContract {
 
     setBridgeExecutor(
       _bridgeExecutor: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setSecurity(
+      _security: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

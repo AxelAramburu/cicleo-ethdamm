@@ -5,6 +5,7 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IRouter } from "../interfaces/IOpenOcean.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
+import { CicleoPaymentSecurity } from "./../Security.sol";
 
 library LibAdmin {
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("com.cicleo.facets.admin");
@@ -16,6 +17,8 @@ library LibAdmin {
         address bridgeExecutor;
         /// @notice Percentage of tax to apply on each payment
         uint16 taxPercentage;
+        /// @notice ERC721 Security Contract
+        CicleoPaymentSecurity securityContract;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -38,6 +41,11 @@ library LibAdmin {
     function getTaxPercentage() internal view returns (uint16) {
         DiamondStorage storage ds = diamondStorage();
         return ds.taxPercentage;
+    } 
+
+     function getSecurity() internal view returns (CicleoPaymentSecurity) {
+        DiamondStorage storage ds = diamondStorage();
+        return ds.securityContract;
     } 
 
 

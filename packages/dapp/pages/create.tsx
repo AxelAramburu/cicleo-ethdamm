@@ -8,7 +8,7 @@ const Home = () => {
     const [paymentManagers, setPaymentManagers] = useState([])
 
     const { write, isError, error } = useContractWrite({
-        address: '0xA73a0d640d421e0800FDc041DA7bA954605E95D6',
+        address: '0xA42C4d77d3407ac3448fdF5eB5877371C4371609',
         abi: PaymentManagerFacet__factory.abi,
         functionName: 'createPaymentManager',
     })
@@ -59,7 +59,7 @@ const Home = () => {
                             <input type="text" name='treasury' placeholder="0x69ef6..."  pattern="0x[a-fA-F0-9]{40}" className="input input-bordered" required />
                         </div>
 
-                        {isError && (<span className='text-error'>{error}</span>)}
+                        {(isError && error != null) && (<span className='text-error'>{error.message}</span>)}
                         
                         <button className='btn btn-primary !mt-8'>Create !</button>
                     </form>
