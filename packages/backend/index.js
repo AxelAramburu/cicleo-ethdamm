@@ -7,6 +7,7 @@ require("dotenv").config()
 const {BigNumber, utils} = require("ethers");
 
 const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
+const ERC20ABI = require("./ABI/ERC20.json");
 
 const asyncMiddleware = fn =>
   (req, res, next) => {
@@ -21,6 +22,12 @@ const contracts = {
     250: {
         diamond: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
     },
+};
+
+const openOceanBlockchain = {
+    56: "bsc",
+    250: "fantom",
+    137: "matic",
 };
 
 const RPCs = {
@@ -155,7 +162,103 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
     })
 );
 
+app.post(
+    "/chain/:blockchain/getExactPrice/:paymentManagerId",
+    asyncMiddleware(async (req, res, next) => {
+        const tokenIn = req.body.tokenIn;
+        
+        const _price = req.body.price;
 
+        const PROVIDER = new ethers.providers.JsonRpcProvider(
+            RPCs[req.params.blockchain]
+        );
+
+        const paymentManager = new ethers.Contract(
+            contracts[req.params.blockchain].diamond,
+            PaymentManagerABI,
+            PROVIDER
+        );
+
+        const token = new ethers.Contract(
+            tokenIn,
+            ERC20ABI,
+            PROVIDER
+        );
+
+        const tokenInDecimals = await token.decimals();
+
+        const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(req.params.paymentManagerId)
+
+        console.log(paymentManagerInfo)
+
+        const tokenOut = paymentManagerInfo[0].paymentToken;
+            
+        if (tableChangeBlockchain[req.params.blockchain] == undefined)
+            return res
+                .status(400)
+                .json({ message: "Blockchain not supported" });
+
+        const price = await axios.get(
+            `https://ethapi.openocean.finance/v2/${req.params.blockchain}/quote` +
+                `?inTokenAddress=${tokenIn}` +
+                `&outTokenAddress=${tokenOut}` +
+                `&amount=${ethers.utils
+                    .parseUnits("1", tokenInDecimals)
+                    .toString()}` +
+                `&gasPrice=5` +
+                `&slippage=1`
+        );
+
+        let estimation = BigNumber.from(_price)
+            .mul(utils.parseUnits("1", price.data.inToken.decimals))
+            .div(price.data.outAmount);
+
+        let isGood = false;
+
+        await sleep(100);
+
+        while (!isGood) {
+            console.log("Verfiy", estimation.toString())
+            
+            const verify = await axios.get(
+                `https://ethapi.openocean.finance/v2/${req.params.blockchain}/quote` +
+                    `?inTokenAddress=${tokenIn}` +
+                    `&outTokenAddress=${tokenOut}` +
+                    `&amount=${estimation.toString()}` +
+                    `&gasPrice=5` +
+                    `&slippage=1`
+            );
+            console.log(verify.data.outAmount)
+
+            if (BigNumber.from(verify.data.outAmount).gte(_price)) {
+                isGood = true;
+                break;
+            } else {
+                estimation = estimation.mul(105).div(100);
+                await sleep(100);
+            }
+        }
+
+        await sleep(100);
+
+        const swap = await axios.get(
+            `https://open-api.openocean.finance/v3/${
+                openOceanBlockchain[req.params.blockchain]
+            }/swap_quote` +
+                `?inTokenAddress=${tokenIn}` +
+                `&outTokenAddress=${tokenOut}` +
+                `&amount=${utils.formatUnits(
+                    estimation,
+                    price.data.inToken.decimals
+                )}` +
+                `&account=${contracts[req.params.blockchain].diamond}` +
+                `&gasPrice=5` +
+                `&slippage=1`
+        );
+
+        res.send(swap.data);
+    })
+);
 
 app.listen(6001);
 
