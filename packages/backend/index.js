@@ -73,7 +73,7 @@ app.get(
     })
 );
 
-app.post("/chain/:paymentManagerChain/getUserInfo/:user/:paymentManagerId/:fromChain",
+app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromChain",
     asyncMiddleware(async (req, res, next) => {
         if (tableChangeBlockchain[req.params.fromChain] == undefined)
             return res
