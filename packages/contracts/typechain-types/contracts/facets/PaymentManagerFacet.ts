@@ -208,7 +208,10 @@ export interface PaymentManagerFacet extends BaseContract {
       subscriptionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [PaymentManagerDataStructOutput, number] & { tokenDecimals: number }
+      [PaymentManagerDataStructOutput, number, string] & {
+        tokenDecimals: number;
+        tokenSymbol: string;
+      }
     >;
   };
 
@@ -235,7 +238,10 @@ export interface PaymentManagerFacet extends BaseContract {
     subscriptionId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [PaymentManagerDataStructOutput, number] & { tokenDecimals: number }
+    [PaymentManagerDataStructOutput, number, string] & {
+      tokenDecimals: number;
+      tokenSymbol: string;
+    }
   >;
 
   callStatic: {
@@ -262,7 +268,10 @@ export interface PaymentManagerFacet extends BaseContract {
       subscriptionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [PaymentManagerDataStructOutput, number] & { tokenDecimals: number }
+      [PaymentManagerDataStructOutput, number, string] & {
+        tokenDecimals: number;
+        tokenSymbol: string;
+      }
     >;
   };
 

@@ -188,6 +188,18 @@ describe("Subscription Test", function () {
     });
 
     
+    it("Get data", async function () {
+        const data = (await facets.AdminFacet.getPaymentManagersByUser(owner.address))[0];
 
+        console.log(data)
+
+        expect(
+            data.decimals
+        ).to.equal(18);
+
+        expect(
+            data.symbol
+        ).to.equal("BUSD");
+    });
 
 });

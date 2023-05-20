@@ -6,6 +6,7 @@ const bp = require("body-parser");
 require("dotenv").config()
 
 const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
+const AdminFacetABI = require("./ABI/AdminFacet.json");
 
 const asyncMiddleware = fn =>
   (req, res, next) => {
@@ -94,11 +95,9 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
         const resp = await axios(config);
         let coinData = resp.data;
 
-        console.log(coinData)
-
         let toDelete = {};
 
-        /* const PROVIDER = new ethers.providers.JsonRpcProvider(
+        const PROVIDER = new ethers.providers.JsonRpcProvider(
             RPCs[req.params.paymentManagerChain]
         );
 
@@ -108,13 +107,11 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
             PROVIDER
         );
 
-        const paymentManagerInfo = await paymentManager.paymentManagers(
+        const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(
             req.params.paymentManagerId
-        ); */
+        );
 
-        //const tokenOutAddress = paymentManagerInfo.paymentToken;
-
-        const tokenOutAddress = "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75";
+        const tokenOutAddress = paymentManagerInfo[0].paymentToken;
         const tokenOutPrice = req.body.tokenOutPrice;
 
         for (let i = 0; i < coinData.length; i++) {

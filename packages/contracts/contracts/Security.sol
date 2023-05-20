@@ -81,7 +81,7 @@ contract CicleoPaymentSecurity is
     /// @notice Get the list of subscription manager id of a user
     /// @param _user User to verify
     /// @return Array of subscription manager ids
-    function getSubManagerList(
+    function getPaymentManagersList(
         address _user
     ) public view returns (uint256[] memory) {
         uint256[] memory _subManagerList = new uint256[](balanceOf(_user));
@@ -98,7 +98,7 @@ contract CicleoPaymentSecurity is
     /// @notice Get the first NFT id for a subscription manager id for a user
     /// @param _user User to verify
     /// @param _subManagerId Id of the subscription manager
-    function getSubManagerTokenId(
+    function getPaymentManagerTokenId(
         address _user,
         uint256 _subManagerId
     ) public view returns (uint256) {

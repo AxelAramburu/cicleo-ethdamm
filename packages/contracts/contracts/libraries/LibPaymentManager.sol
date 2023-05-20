@@ -2,20 +2,20 @@
 pragma solidity ^0.8.0;
 
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "./../interfaces/IERC20.sol";
 import { IRouter } from "../interfaces/IOpenOcean.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
 
-struct PaymentManagerData {
-    /// @notice Address of the treasury account
-    address treasuryAccount;
-    /// @notice Token of the backed payment
-    IERC20 paymentToken;
-    /// @notice Owner
-    address owner;
-}
-
 library LibPaymentManager {
+    struct PaymentManagerData {
+        /// @notice Address of the treasury account
+        address treasuryAccount;
+        /// @notice Token of the backed payment
+        IERC20 paymentToken;
+        /// @notice name of the payment manager
+        string name;
+    }
+
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("com.cicleo.facets.paymentmanager");
 
     struct DiamondStorage {

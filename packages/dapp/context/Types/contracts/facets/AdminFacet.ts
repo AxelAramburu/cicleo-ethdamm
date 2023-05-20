@@ -27,10 +27,36 @@ import type {
   PromiseOrValue,
 } from "../../common";
 
+export declare namespace AdminFacet {
+  export type PaymentManagerDataStruct = {
+    treasuryAccount: PromiseOrValue<string>;
+    paymentToken: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+    symbol: PromiseOrValue<string>;
+    decimals: PromiseOrValue<BigNumberish>;
+  };
+
+  export type PaymentManagerDataStructOutput = [
+    string,
+    string,
+    string,
+    string,
+    number
+  ] & {
+    treasuryAccount: string;
+    paymentToken: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+  };
+}
+
 export interface AdminFacetInterface extends utils.Interface {
   functions: {
+    "getPaymentManagersByUser(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "setBridgeExecutor(address)": FunctionFragment;
+    "setSecurity(address)": FunctionFragment;
     "setTaxAccount(address)": FunctionFragment;
     "setTaxPercentage(uint16)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -38,16 +64,26 @@ export interface AdminFacetInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "getPaymentManagersByUser"
       | "owner"
       | "setBridgeExecutor"
+      | "setSecurity"
       | "setTaxAccount"
       | "setTaxPercentage"
       | "transferOwnership"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "getPaymentManagersByUser",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "setBridgeExecutor",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setSecurity",
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
@@ -63,9 +99,17 @@ export interface AdminFacetInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getPaymentManagersByUser",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setBridgeExecutor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setSecurity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -127,10 +171,20 @@ export interface AdminFacet extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    getPaymentManagersByUser(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[AdminFacet.PaymentManagerDataStructOutput[]]>;
+
     owner(overrides?: CallOverrides): Promise<[string] & { owner_: string }>;
 
     setBridgeExecutor(
       _bridgeExecutor: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    setSecurity(
+      _security: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -150,10 +204,20 @@ export interface AdminFacet extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  getPaymentManagersByUser(
+    user: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<AdminFacet.PaymentManagerDataStructOutput[]>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   setBridgeExecutor(
     _bridgeExecutor: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setSecurity(
+    _security: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -173,10 +237,20 @@ export interface AdminFacet extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    getPaymentManagersByUser(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<AdminFacet.PaymentManagerDataStructOutput[]>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     setBridgeExecutor(
       _bridgeExecutor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setSecurity(
+      _security: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -208,10 +282,20 @@ export interface AdminFacet extends BaseContract {
   };
 
   estimateGas: {
+    getPaymentManagersByUser(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     setBridgeExecutor(
       _bridgeExecutor: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    setSecurity(
+      _security: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -232,10 +316,20 @@ export interface AdminFacet extends BaseContract {
   };
 
   populateTransaction: {
+    getPaymentManagersByUser(
+      user: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setBridgeExecutor(
       _bridgeExecutor: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setSecurity(
+      _security: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

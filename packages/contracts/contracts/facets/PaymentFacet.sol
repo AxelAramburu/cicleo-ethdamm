@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "../interfaces/IERC20.sol";
 import { IRouter, SwapDescription, IOpenOceanCaller } from "../interfaces/IOpenOcean.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
 import {LibPaymentManager} from "../libraries/LibPaymentManager.sol";
 import {LibAdmin} from "../libraries/LibAdmin.sol";
-import {PaymentManagerData} from "../libraries/LibPaymentManager.sol";
-
 
 contract PaymentFacet {
     bytes32 internal constant NAMESPACE =
@@ -46,7 +44,7 @@ contract PaymentFacet {
         uint256 paymentManagerId,
         uint256 amount
     ) internal {
-        PaymentManagerData memory paymentInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
+        LibPaymentManager.PaymentManagerData memory paymentInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
         require(address(paymentInfo.paymentToken) != address(0), "Invalid subinfo");
 
         uint256 taxAmount = amount * LibAdmin.getTaxPercentage() / 1000;
@@ -69,7 +67,7 @@ contract PaymentFacet {
         uint256 price,
         string calldata nameOfPayment
     ) external {
-        PaymentManagerData memory paymentInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
+        LibPaymentManager.PaymentManagerData memory paymentInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
         require(address(paymentInfo.paymentToken) != address(0), "Invalid subinfo");
 
         transferFrom(msg.sender, paymentInfo.paymentToken, price);
@@ -87,7 +85,7 @@ contract PaymentFacet {
         SwapDescription memory desc,
         IOpenOceanCaller.CallDescription[] calldata calls
     ) external {
-        PaymentManagerData memory paymentInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
+        LibPaymentManager.PaymentManagerData memory paymentInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
         require(address(paymentInfo.paymentToken) != address(0), "Invalid subinfo");
 
         transferFrom(msg.sender, desc.srcToken, desc.amount);
