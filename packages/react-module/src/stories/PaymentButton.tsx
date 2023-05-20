@@ -8,8 +8,8 @@ export const Page: React.FC = () => {
 			<PaymentButton
 				chainId={250}
 				paymentManagerId={1}
-				price={ethers.utils.parseUnits("1", 6)}
-				name="testtt"
+				price={ethers.utils.parseUnits("1", 1)}
+				name="Payement1"
 			/>
 		</div>
 	);

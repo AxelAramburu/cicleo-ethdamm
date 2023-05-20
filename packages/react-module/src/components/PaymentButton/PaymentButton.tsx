@@ -121,6 +121,7 @@ const PaymentButton: FC<PaymentButton> = ({
     const [tokenApproval, setTokenApproval] = useState(BigNumber.from(0));
 	const [paymentInfoIsFetched, setPaymentInfoIsFetched] = useState(false);
 	const [handleEmail, setHandleEmail] = useState(false);
+	const [userMail, setUserMail] = useState("");
 
     const [errorMessage, setErrorMessage] = useState("");
     const [loadingStep, setLoadingStep] = useState(0);
@@ -339,6 +340,11 @@ const PaymentButton: FC<PaymentButton> = ({
             `https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getPaymentManagerInfo/${paymentManagerId}`);
         
         console.log(paymentManagerInfo.data);
+	};
+	//@ts-ignore
+	const registerMail = (e) => {
+		setUserMail(e.target.value);
+	};
 
         setPaymentManagerInfo(paymentManagerInfo.data);
     }
@@ -414,6 +420,8 @@ const PaymentButton: FC<PaymentButton> = ({
 											type="email"
 											placeholder="example@example.com"
 											className="cap-input cap-input-bordered cap-w-full cap-max-w-xs"
+											value={userMail}
+											onChange={registerMail}
 										/>
 									</div>
 									<div className="cap-py-4">
