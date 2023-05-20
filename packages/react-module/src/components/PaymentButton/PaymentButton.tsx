@@ -223,8 +223,8 @@ const PaymentButton: FC<PaymentButton> = ({
             setSwapData(resp.data);
 
             let decodedData = openOceanIface.parseTransaction({
-                data: resp.data.data.data,
-                value: resp.data.data.value,
+                data: resp.data.data,
+                value: resp.data.value,
             });
 
             console.log("decodeddata");

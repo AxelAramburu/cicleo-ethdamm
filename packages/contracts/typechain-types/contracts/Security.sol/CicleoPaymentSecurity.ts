@@ -44,7 +44,7 @@ export interface CicleoPaymentSecurityInterface extends utils.Interface {
     "owner()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "ownershipByNftId(uint256)": FunctionFragment;
-    "ownershipBySubscriptionId(uint256)": FunctionFragment;
+    "ownershipByPaymentManagerId(uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
@@ -79,7 +79,7 @@ export interface CicleoPaymentSecurityInterface extends utils.Interface {
       | "owner"
       | "ownerOf"
       | "ownershipByNftId"
-      | "ownershipBySubscriptionId"
+      | "ownershipByPaymentManagerId"
       | "renounceOwnership"
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
@@ -146,7 +146,7 @@ export interface CicleoPaymentSecurityInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "ownershipBySubscriptionId",
+    functionFragment: "ownershipByPaymentManagerId",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -257,7 +257,7 @@ export interface CicleoPaymentSecurityInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "ownershipBySubscriptionId",
+    functionFragment: "ownershipByPaymentManagerId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -477,7 +477,7 @@ export interface CicleoPaymentSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    ownershipBySubscriptionId(
+    ownershipByPaymentManagerId(
       arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -628,7 +628,7 @@ export interface CicleoPaymentSecurity extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  ownershipBySubscriptionId(
+  ownershipByPaymentManagerId(
     arg0: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -779,7 +779,7 @@ export interface CicleoPaymentSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    ownershipBySubscriptionId(
+    ownershipByPaymentManagerId(
       arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -982,7 +982,7 @@ export interface CicleoPaymentSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    ownershipBySubscriptionId(
+    ownershipByPaymentManagerId(
       arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1134,7 +1134,7 @@ export interface CicleoPaymentSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    ownershipBySubscriptionId(
+    ownershipByPaymentManagerId(
       arg0: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

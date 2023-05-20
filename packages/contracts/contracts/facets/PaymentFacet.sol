@@ -53,6 +53,14 @@ contract PaymentFacet {
         paymentInfo.paymentToken.transfer(LibAdmin.getTaxAccount(), taxAmount);
     }
 
+    //-----Admin function----------
+
+    function setRouterSwap(IRouter routerSwap) external {
+        LibDiamond.enforceIsContractOwner();
+        Storage storage ds = getStorage();
+        ds.routerSwap = routerSwap;
+    }   
+
     //----External View function--------------
 
     function getRouterSwap() public view returns (IRouter) {
@@ -101,6 +109,8 @@ contract PaymentFacet {
         //Verify if the token have a transfer fees or if the swap goes okay
         uint256 balanceAfter = desc.dstToken.balanceOf(address(this));
         require(balanceAfter - balanceBefore >= price, "Swap failed");
+
+        distributeMoney(paymentManagerId, price);
 
         emit PaymentDoneWithCicleo(paymentManagerId, msg.sender, nameOfPayment, balanceAfter - balanceBefore);
     }

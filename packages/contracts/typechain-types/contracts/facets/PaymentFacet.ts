@@ -90,6 +90,7 @@ export interface PaymentFacetInterface extends utils.Interface {
     "getRouterSwap()": FunctionFragment;
     "payWithCicleo(uint256,uint256,string)": FunctionFragment;
     "payWithCicleoWithSwap(uint256,uint256,string,address,(address,address,address,address,uint256,uint256,uint256,uint256,address,bytes),(uint256,uint256,uint256,bytes)[])": FunctionFragment;
+    "setRouterSwap(address)": FunctionFragment;
   };
 
   getFunction(
@@ -97,6 +98,7 @@ export interface PaymentFacetInterface extends utils.Interface {
       | "getRouterSwap"
       | "payWithCicleo"
       | "payWithCicleoWithSwap"
+      | "setRouterSwap"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -122,6 +124,10 @@ export interface PaymentFacetInterface extends utils.Interface {
       IOpenOceanCaller.CallDescriptionStruct[]
     ]
   ): string;
+  encodeFunctionData(
+    functionFragment: "setRouterSwap",
+    values: [PromiseOrValue<string>]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "getRouterSwap",
@@ -135,6 +141,10 @@ export interface PaymentFacetInterface extends utils.Interface {
     functionFragment: "payWithCicleoWithSwap",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "setRouterSwap",
+    data: BytesLike
+  ): Result;
 
   events: {
     "PaymentDoneWithCicleo(uint256,address,string,uint256)": EventFragment;
@@ -146,7 +156,7 @@ export interface PaymentFacetInterface extends utils.Interface {
 }
 
 export interface PaymentDoneWithCicleoEventObject {
-  subscriptionId: BigNumber;
+  paymentManagerId: BigNumber;
   user: string;
   nameOfPayment: string;
   price: BigNumber;
@@ -218,6 +228,11 @@ export interface PaymentFacet extends BaseContract {
       calls: IOpenOceanCaller.CallDescriptionStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    setRouterSwap(
+      routerSwap: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
   getRouterSwap(overrides?: CallOverrides): Promise<string>;
@@ -236,6 +251,11 @@ export interface PaymentFacet extends BaseContract {
     executor: PromiseOrValue<string>,
     desc: SwapDescriptionStruct,
     calls: IOpenOceanCaller.CallDescriptionStruct[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  setRouterSwap(
+    routerSwap: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -258,17 +278,22 @@ export interface PaymentFacet extends BaseContract {
       calls: IOpenOceanCaller.CallDescriptionStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setRouterSwap(
+      routerSwap: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {
     "PaymentDoneWithCicleo(uint256,address,string,uint256)"(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       user?: PromiseOrValue<string> | null,
       nameOfPayment?: PromiseOrValue<string> | null,
       price?: null
     ): PaymentDoneWithCicleoEventFilter;
     PaymentDoneWithCicleo(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       user?: PromiseOrValue<string> | null,
       nameOfPayment?: PromiseOrValue<string> | null,
       price?: null
@@ -307,6 +332,11 @@ export interface PaymentFacet extends BaseContract {
       calls: IOpenOceanCaller.CallDescriptionStruct[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
+
+    setRouterSwap(
+      routerSwap: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -326,6 +356,11 @@ export interface PaymentFacet extends BaseContract {
       executor: PromiseOrValue<string>,
       desc: SwapDescriptionStruct,
       calls: IOpenOceanCaller.CallDescriptionStruct[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setRouterSwap(
+      routerSwap: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

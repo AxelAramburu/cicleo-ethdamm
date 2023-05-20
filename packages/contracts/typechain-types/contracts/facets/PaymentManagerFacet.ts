@@ -123,7 +123,7 @@ export type PaymentManagerCreatedEventFilter =
   TypedEventFilter<PaymentManagerCreatedEvent>;
 
 export interface PaymentManagerOwnerChangedEventObject {
-  subscriptionId: BigNumber;
+  paymentManagerId: BigNumber;
   owner: string;
 }
 export type PaymentManagerOwnerChangedEvent = TypedEvent<
@@ -135,7 +135,7 @@ export type PaymentManagerOwnerChangedEventFilter =
   TypedEventFilter<PaymentManagerOwnerChangedEvent>;
 
 export interface PaymentManagerTokenChangedEventObject {
-  subscriptionId: BigNumber;
+  paymentManagerId: BigNumber;
   paymentToken: string;
 }
 export type PaymentManagerTokenChangedEvent = TypedEvent<
@@ -147,7 +147,7 @@ export type PaymentManagerTokenChangedEventFilter =
   TypedEventFilter<PaymentManagerTokenChangedEvent>;
 
 export interface PaymentManagerTreasuryChangedEventObject {
-  subscriptionId: BigNumber;
+  paymentManagerId: BigNumber;
   treasury: string;
 }
 export type PaymentManagerTreasuryChangedEvent = TypedEvent<
@@ -205,7 +205,7 @@ export interface PaymentManagerFacet extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getPaymentManagerInfo(
-      subscriptionId: PromiseOrValue<BigNumberish>,
+      paymentManagerId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [PaymentManagerDataStructOutput, number, string] & {
@@ -235,7 +235,7 @@ export interface PaymentManagerFacet extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getPaymentManagerInfo(
-    subscriptionId: PromiseOrValue<BigNumberish>,
+    paymentManagerId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
     [PaymentManagerDataStructOutput, number, string] & {
@@ -265,7 +265,7 @@ export interface PaymentManagerFacet extends BaseContract {
     ): Promise<void>;
 
     getPaymentManagerInfo(
-      subscriptionId: PromiseOrValue<BigNumberish>,
+      paymentManagerId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
       [PaymentManagerDataStructOutput, number, string] & {
@@ -290,29 +290,29 @@ export interface PaymentManagerFacet extends BaseContract {
     ): PaymentManagerCreatedEventFilter;
 
     "PaymentManagerOwnerChanged(uint256,address)"(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       owner?: PromiseOrValue<string> | null
     ): PaymentManagerOwnerChangedEventFilter;
     PaymentManagerOwnerChanged(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       owner?: PromiseOrValue<string> | null
     ): PaymentManagerOwnerChangedEventFilter;
 
     "PaymentManagerTokenChanged(uint256,address)"(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       paymentToken?: PromiseOrValue<string> | null
     ): PaymentManagerTokenChangedEventFilter;
     PaymentManagerTokenChanged(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       paymentToken?: PromiseOrValue<string> | null
     ): PaymentManagerTokenChangedEventFilter;
 
     "PaymentManagerTreasuryChanged(uint256,address)"(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       treasury?: PromiseOrValue<string> | null
     ): PaymentManagerTreasuryChangedEventFilter;
     PaymentManagerTreasuryChanged(
-      subscriptionId?: PromiseOrValue<BigNumberish> | null,
+      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
       treasury?: PromiseOrValue<string> | null
     ): PaymentManagerTreasuryChangedEventFilter;
   };
@@ -338,7 +338,7 @@ export interface PaymentManagerFacet extends BaseContract {
     ): Promise<BigNumber>;
 
     getPaymentManagerInfo(
-      subscriptionId: PromiseOrValue<BigNumberish>,
+      paymentManagerId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -364,7 +364,7 @@ export interface PaymentManagerFacet extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getPaymentManagerInfo(
-      subscriptionId: PromiseOrValue<BigNumberish>,
+      paymentManagerId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
