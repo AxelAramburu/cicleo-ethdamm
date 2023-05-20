@@ -4,7 +4,21 @@ import "./PaymentButton.css";
 import TextWhite from "@assets/logo_text_white.svg";
 import PayImage from "@assets/pay.svg";
 import { reduceAddress } from "@context/contract";
-import { SelectNetwork, Login } from "./components";
+import { SelectNetwork, Login, SelectCoin } from "./components";
+
+import axios from "axios";
+import {
+	getNetwork,
+	fetchSigner,
+	getContract,
+	readContract,
+	erc20ABI,
+	readContracts,
+	signMessage,
+	prepareWriteContract,
+	writeContract,
+	getAccount,
+} from "@wagmi/core";
 
 type PaymentButton = {
 	subscriptionId: number;
@@ -69,6 +83,29 @@ const PaymentButton: FC<PaymentButton> = ({
 	const [account, setAccount] = useState<string | null>(null);
 	const [isBridged, setIsBridged] = useState(false);
 	const [networkSelected, setNetworkSelected] = useState(false);
+	const [coinSelected, setcoinSelected] = useState(false);
+	const [coinLists, setCoinLists] = useState([]);
+
+	const [isLoaded, setIsLoaded] = useState(false);
+
+	const getUserTokenList = async () => {
+		const { chain, chains } = getNetwork();
+		if (!chain) return;
+		const sourceChainId = chain.id;
+
+		const account = getAccount();
+		const address = account.address;
+
+		if (!address) return;
+
+		const userInfo = await axios.get(
+			`https://cicleo-ethdamm-dapp.vercel.app/chain/${sourceChainId}/getUserInfo/${address}/${sourceChainId}`
+		);
+
+		setCoinLists(userInfo.data.coinList);
+		setIsLoaded(true);
+		//setCoinLists(userInfo.data.coinList);
+	};
 
 	useEffect(() => {
 		//createContracts();
@@ -123,11 +160,18 @@ const PaymentButton: FC<PaymentButton> = ({
 									_chains={_chains}
 								/>
 							);
+
+						if (!coinSelected)
+							return (
+								<SelectCoin
+									isLoaded={true}
+									coinLists={[]}
+									setCoin={(coin: any) => {}}
+								/>
+							);
 					})()}
 				</div>
 			</div>
 		</>
 	);
 };
-
-export default PaymentButton;
