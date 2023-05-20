@@ -3,6 +3,8 @@
 /* eslint-disable */
 import type * as diamondSol from "./Diamond.sol";
 export type { diamondSol };
+import type * as securitySol from "./Security.sol";
+export type { securitySol };
 import type * as facets from "./facets";
 export type { facets };
 import type * as interfaces from "./interfaces";

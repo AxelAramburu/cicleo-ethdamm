@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
+import { CicleoPaymentSecurity } from "./../Security.sol";
 
 contract AdminFacet is IERC173 {
     bytes32 internal constant NAMESPACE =
@@ -15,6 +16,8 @@ contract AdminFacet is IERC173 {
         address bridgeExecutor;
         /// @notice Percentage of tax to apply on each payment
         uint16 taxPercentage;
+        /// @notice ERC721 Security Contract
+        CicleoPaymentSecurity securityContract;
     }
 
     function transferOwnership(address _newOwner) external override {
@@ -46,6 +49,12 @@ contract AdminFacet is IERC173 {
         LibDiamond.enforceIsContractOwner();
         Storage storage ds = getStorage();
         ds.taxPercentage = _taxPercentage;
+    }
+
+    function setSecurity(address _security) external {
+        LibDiamond.enforceIsContractOwner();
+        Storage storage ds = getStorage();
+        ds.securityContract = CicleoPaymentSecurity(_security);
     }
 
     //----Diamond storage functions-------------------------------------//

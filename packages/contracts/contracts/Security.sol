@@ -1,19 +1,16 @@
-// SPDX-License-Identifier: CC BY-NC 2.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {CicleoSubscriptionFactory} from "./SubscriptionFactory.sol";
 
 /// @title Cicleo Subscription Security
 /// @author Pol Epie
 /// @notice This contract is used to manage ownership of subscription manager
-contract CicleoSubscriptionSecurity is
-    ERC721EnumerableUpgradeable,
-    OwnableUpgradeable,
-    ReentrancyGuardUpgradeable
+contract CicleoPaymentSecurity is
+    ERC721Enumerable,
+    Ownable
 {
     /// @notice Emitted when a new owner pass is minted
     event MintOwnerPass(address minter, uint256 subscriptionManagerId);
@@ -25,18 +22,16 @@ contract CicleoSubscriptionSecurity is
     uint256 public nftSupply;
 
     /// @notice factory Contract of the subscription factory
-    CicleoSubscriptionFactory public factory;
+    address public diamond;
 
     /// @notice ownershipByNftId Mapping of the NFT id to the corresponding subscription manager id
     mapping(uint256 => uint256) public ownershipByNftId;
 
     /// @notice ownershipBySubscriptionId Mapping of the subscription manager id to the corresponding Array of NFT id
-    mapping(uint256 => uint256[]) public ownershipBySubscriptionId;
+    mapping(uint256 => uint256) public ownershipBySubscriptionId;
 
-    function initialize() public initializer {
-        __Ownable_init();
-        __ReentrancyGuard_init();
-        __ERC721_init("Cicleo OwnerPass", "COP");
+    constructor(address _diamond) ERC721("Cicleo OwnerPass Payment", "COP") {
+        diamond = _diamond;
     }
 
     //Others
@@ -121,30 +116,18 @@ contract CicleoSubscriptionSecurity is
     /// @notice Get the list of owners for a subscription manager id
     /// @param _subManagerId Id of the subscription manager
     /// @return Array of owners
-    function getOwnersBySubmanagerId(
+    function getOwnerByPaymentManagerId(
         uint256 _subManagerId
-    ) public view returns (address[] memory) {
-        address[] memory _owners = new address[](
-            ownershipBySubscriptionId[_subManagerId].length
-        );
-
-        for (
-            uint256 i = 0;
-            i < ownershipBySubscriptionId[_subManagerId].length;
-            i++
-        ) {
-            _owners[i] = ownerOf(ownershipBySubscriptionId[_subManagerId][i]);
-        }
-
-        return _owners;
+    ) public view returns (address) {
+        return ownerOf(ownershipBySubscriptionId[_subManagerId]);
     }
 
     // Mint Functions
 
     /// @notice Set the factory contract
-    /// @param _factory Address of the factory contract
-    function setFactory(address _factory) external onlyOwner {
-        factory = CicleoSubscriptionFactory(_factory);
+    /// @param _diamond Address of the factory contract
+    function setDiamond(address _diamond) external onlyOwner {
+        diamond = _diamond;
     }
 
     /// @notice Internal Mint a new NFT
@@ -155,7 +138,7 @@ contract CicleoSubscriptionSecurity is
         _mint(_to, nftSupply);
 
         ownershipByNftId[nftSupply] = subscriptionManagerId;
-        ownershipBySubscriptionId[subscriptionManagerId].push(nftSupply);
+        ownershipBySubscriptionId[subscriptionManagerId] = nftSupply;
 
         emit MintOwnerPass(_to, subscriptionManagerId);
     }
@@ -164,22 +147,16 @@ contract CicleoSubscriptionSecurity is
     /// @param _to Address of the new owner
     /// @param subscriptionManagerId Id of the subscription manager
     function mintNft(address _to, uint256 subscriptionManagerId) external {
-        require(msg.sender == address(factory), "Only factory can mint");
+        require(msg.sender == address(diamond), "Only factory can mint");
         _mintNft(_to, subscriptionManagerId);
     }
 
-    /// @notice Burn a NFT when the subscription manager is deleted (called by the subscription manager)
-    function deleteSubManager() external {
-        uint256 subscriptionManagerId = factory.subscriptionManagerId(msg.sender);
-
-        require(subscriptionManagerId != 0, "Only subManager can burn");
-
-        for (
-            uint256 i = 0;
-            i < ownershipBySubscriptionId[subscriptionManagerId].length;
-            i++
-        ) {
-            _burn(ownershipBySubscriptionId[subscriptionManagerId][i]);
-        }
+    /// @notice Burn a NFT to "delete" the payment manager
+    function deletePaymentManager(
+        uint256 paymentManagerId
+    ) external {
+        require(verifyIfOwner(msg.sender, paymentManagerId), "Only owner can burn");
+        
+        _burn(ownershipBySubscriptionId[paymentManagerId]);
     }
 }

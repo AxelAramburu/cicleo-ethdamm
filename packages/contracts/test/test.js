@@ -93,12 +93,17 @@ const deploy = async () => {
 
     const [router, facets] = await deployDiamond(owner);
 
+    let Security = await ethers.getContractFactory("CicleoPaymentSecurity");
+    let security = await Security.deploy(router.address);
+
     await facets.AdminFacet.setTaxPercentage(15);
     await facets.AdminFacet.setTaxAccount(treasury.address);
+    await facets.AdminFacet.setSecurity(security.address);
 
     return [
         token,
         facets,
+        security,
         owner,
         account1,
         account2,
@@ -110,6 +115,7 @@ const deploy = async () => {
 describe("Subscription Test", function () {
     let token;
     let facets;
+    let security;
     let owner;
     let account1;
     let account2;
@@ -119,6 +125,7 @@ describe("Subscription Test", function () {
         [
             token,
             facets,
+            security,
             owner,
             account1,
             account2,
@@ -136,6 +143,28 @@ describe("Subscription Test", function () {
         await token
             .connect(account1)
             .approve(facets.PaymentManagerFacet.address, utils.parseEther("100"));
+    });
+
+    it("Receive nft", async function () {
+        expect(await security.balanceOf(owner.address)).to.equal(1);
+
+        await facets.PaymentManagerFacet.createPaymentManager(
+            "Test2",
+            token.address,
+            account3.address
+        );
+
+        expect(await security.balanceOf(owner.address)).to.equal(2);
+    });
+
+    it("Ownership", async function () {
+        await expect(facets.PaymentManagerFacet.connect(account1).editPaymentManagerToken(1, token.address)).to.be.revertedWith("Not owner")
+
+        await facets.PaymentManagerFacet.editPaymentManagerToken(1, token.address)
+
+        await security.transferFrom(owner.address, account1.address, 1);
+
+        await facets.PaymentManagerFacet.connect(account1).editPaymentManagerToken(1, token.address)
     });
 
     it("Pay with payment token", async function () {
