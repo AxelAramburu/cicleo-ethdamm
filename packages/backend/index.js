@@ -5,7 +5,7 @@ const { ethers, BigNumber, utils } = require("ethers");
 const bp = require("body-parser");
 require("dotenv").config()
 
-const PaymentManagerABI = require("./abi/PaymentManager.json");
+const PaymentManagerABI = require("./abi/PaymentManagerFacet.json");
 
 const asyncMiddleware = fn =>
   (req, res, next) => {
