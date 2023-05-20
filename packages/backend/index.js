@@ -8,6 +8,7 @@ const { BigNumber, utils } = require("ethers");
 
 const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
 const ERC20ABI = require("./ABI/ERC20.json");
+const STARGATEABI = require("./ABI/STARGATE.json");
 
 const asyncMiddleware = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch((err) => {
@@ -120,6 +121,60 @@ app.post(
 
             //In case of bridging
             if (req.params.paymentManagerChain != req.params.fromChain) {
+                try {
+                    const quoteRequest = {
+                        fromChain: req.params.fromChain,
+                        fromToken: coinData[i].id,
+                        fromAddress: "0x2e7BcddCD74aDE69B67E816cB32dB6F0B709Cab5", //Use as refund address
+                        toChain: req.params.paymentManagerChain,
+                        toToken: tokenOutAddress,
+                        toAmount: tokenOutAmount.toString(),
+                        toContractAddress: contracts[req.params.paymentManagerChain].diamond,
+                        toContractCallData: "0x",
+                        toContractGasLimit: '900000',
+                        maxPriceImpact: '0.5'
+                    };
+
+                    console.log(quoteRequest)
+                
+                    const response = await axios.post("https://li.quest/v1/quote/contractCall", quoteRequest);
+
+                    console.log(response.data);
+
+                    const data = response.data.transactionRequest.data;
+
+                    const ifaceStargate = new ethers.utils.Interface(STARGATEABI);
+                    const decodedArgsStargate = ifaceStargate.decodeFunctionData(
+                        data.slice(0, 10),
+                        data
+                    );
+                    const functionNameStargate = ifaceStargate.getFunction(
+                        data.slice(0, 10)
+                    ).name;
+
+                    console.log(functionNameStargate);
+
+                    let _bridgeData
+                    let _swapData = []
+                    let _stargateData
+
+                    if (functionNameStargate == "startBridgeTokensViaStargate") {
+                        _bridgeData = decodedArgsStargate[0]
+                        _stargateData = decodedArgsStargate[1]
+                    } else if (functionNameStargate == "swapAndStartBridgeTokensViaStargate") {
+                        _bridgeData = decodedArgsStargate[0]
+                        _swapData = decodedArgsStargate[1]
+                        _stargateData = decodedArgsStargate[2]
+                    }
+
+                    coinData[i]._bridgeData = _bridgeData
+                    coinData[i]._swapData = _swapData
+                    coinData[i]._stargateData = _stargateData
+                    coinData[i].toPay = response.data.estimate.fromAmount;
+                } catch (error) {
+                    console.log(error);
+                    toDelete[i] = true;
+                }
             } else {
                 try {
                     const price = await axios.get(
