@@ -260,6 +260,22 @@ app.post(
     })
 );
 
+app.get("/chain/:blockchain/getPaymentManagerInfo/:paymentManagerId", asyncMiddleware(async (req, res, next) => { 
+    const PROVIDER = new ethers.providers.JsonRpcProvider(
+        RPCs[req.params.blockchain]
+    );
+
+    const paymentManager = new ethers.Contract(
+        contracts[req.params.blockchain].diamond,
+        PaymentManagerABI,
+        PROVIDER
+    );
+
+    const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(req.params.paymentManagerId)
+
+    res.send(paymentManagerInfo)
+}))
+
 app.listen(6001);
 
 module.exports = app;
