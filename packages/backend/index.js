@@ -4,6 +4,7 @@ const axios = require("axios");
 const ethers = require("ethers");
 const bp = require("body-parser");
 require("dotenv").config()
+const {BigNumber, utils} = require("ethers");
 
 const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
 
@@ -44,24 +45,13 @@ const tableChangeBlockchain = {
 /* Express Part */
 const app = express();
 
-app.use(
-    cors({
-        credentials: true,
-        methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD"],
-        saveUninitialized: true,
-        origin: true,
-    })
-);
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE'); // If needed
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type'); // If needed
+    res.setHeader('Access-Control-Allow-Credentials', true); // If needed
+});
 
-app.options(
-    "*",
-    cors({
-        credentials: true,
-        methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD"],
-        saveUninitialized: true,
-        origin: true,
-    })
-);
 
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
@@ -94,11 +84,9 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
         const resp = await axios(config);
         let coinData = resp.data;
 
-        console.log(coinData)
-
         let toDelete = {};
 
-        /* const PROVIDER = new ethers.providers.JsonRpcProvider(
+        const PROVIDER = new ethers.providers.JsonRpcProvider(
             RPCs[req.params.paymentManagerChain]
         );
 
@@ -108,14 +96,14 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
             PROVIDER
         );
 
-        const paymentManagerInfo = await paymentManager.paymentManagers(
+        const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(
             req.params.paymentManagerId
-        ); */
+        );
 
-        //const tokenOutAddress = paymentManagerInfo.paymentToken;
+        console.log(paymentManagerInfo)
 
-        const tokenOutAddress = "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75";
-        const tokenOutPrice = req.body.tokenOutPrice;
+        const tokenOutAddress = paymentManagerInfo[0].paymentToken;
+        const tokenOutAmount = BigNumber.from(req.body.tokenOutAmount);
 
         for (let i = 0; i < coinData.length; i++) {
             if (coinData[i].id.substring(0, 2) != "0x") {
@@ -127,7 +115,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
                 coinData[i].id.toUpperCase() ==
                 tokenOutAddress.toUpperCase()
             ) {
-                coinData[i].toPay = tokenOutPrice;
+                coinData[i].toPay = tokenOutAmount.toString();
                 continue;
             }
 
@@ -137,7 +125,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
             } else {
                 try {
                     const price = await axios.get(
-                        `https://ethapi.openocean.finance/v2/${fromChain}/quote` +
+                        `https://ethapi.openocean.finance/v2/${req.params.fromChain}/quote` +
                             `?inTokenAddress=${coinData[i].id}` +
                             `&outTokenAddress=${tokenOutAddress}` +
                             `&amount=${ethers.utils
@@ -149,7 +137,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
 
                     await sleep(50);
 
-                    coinData[i].toPay = userPrice
+                    coinData[i].toPay = tokenOutAmount
                         .mul(utils.parseUnits("1", coinData[i].decimals))
                         .div(price.data.outAmount)
                         .toString();
