@@ -1,11 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-const { ethers, BigNumber, utils } = require("ethers");
+const ethers = require("ethers");
 const bp = require("body-parser");
 require("dotenv").config()
 
-const PaymentManagerABI = require("./abi/PaymentManagerFacet.json");
+const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
 
 const asyncMiddleware = fn =>
   (req, res, next) => {
@@ -98,7 +98,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
 
         let toDelete = {};
 
-        const PROVIDER = new ethers.providers.JsonRpcProvider(
+        /* const PROVIDER = new ethers.providers.JsonRpcProvider(
             RPCs[req.params.paymentManagerChain]
         );
 
@@ -110,7 +110,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
 
         const paymentManagerInfo = await paymentManager.paymentManagers(
             req.params.paymentManagerId
-        );
+        ); */
 
         //const tokenOutAddress = paymentManagerInfo.paymentToken;
 
