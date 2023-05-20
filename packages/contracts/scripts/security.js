@@ -4,7 +4,7 @@
 async function deploy() {
 
     const Security = await ethers.getContractFactory("CicleoPaymentSecurity");
-    const security = await Security.deploy("0xA42C4d77d3407ac3448fdF5eB5877371C4371609");
+    const security = await Security.deploy("0x471e8591f720aD2fCc360081a60712F9f6138665");
 
     await security.deployed();
 

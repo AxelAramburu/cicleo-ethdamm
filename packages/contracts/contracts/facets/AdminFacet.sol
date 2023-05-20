@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
 import { CicleoPaymentSecurity } from "./../Security.sol";
+import { IERC20 } from "./../interfaces/IERC20.sol";
+import { LibPaymentManager } from "./../libraries/LibPaymentManager.sol";
 
 contract AdminFacet is IERC173 {
     bytes32 internal constant NAMESPACE =
@@ -27,6 +29,43 @@ contract AdminFacet is IERC173 {
 
     function owner() external override view returns (address owner_) {
         owner_ = LibDiamond.contractOwner();
+    }
+
+    //-----Get functions-----------
+
+    struct PaymentManagerData {
+        /// @notice Address of the treasury account
+        address treasuryAccount;
+        /// @notice Token of the backed payment
+        IERC20 paymentToken;
+        /// @notice Name of the payment manager
+        string name;
+        /// @notice Symbol of the token
+        string symbol;
+        /// @notice Decimals of the token
+        uint8 decimals;
+    }
+
+    function getPaymentManagersByUser(address user) external view returns (PaymentManagerData[] memory){
+        Storage storage ds = getStorage();
+        uint256[] memory listOfPaymentManagers = ds.securityContract.getPaymentManagersList(user);
+
+        PaymentManagerData[] memory paymentManagers = new PaymentManagerData[](listOfPaymentManagers.length);
+
+        for (uint256 i = 0; i < listOfPaymentManagers.length; i++) {
+            uint256 paymentManagerId = listOfPaymentManagers[i];
+            LibPaymentManager.PaymentManagerData memory paymentManagerInfo = LibPaymentManager.getPaymentManagerInfo(paymentManagerId);
+
+            paymentManagers[i] = PaymentManagerData(
+                paymentManagerInfo.treasuryAccount,
+                paymentManagerInfo.paymentToken,
+                paymentManagerInfo.name,
+                paymentManagerInfo.paymentToken.symbol(),
+                paymentManagerInfo.paymentToken.decimals()
+            );
+        }
+
+        return paymentManagers;
     }
 
     //----Admin payment manager function----------

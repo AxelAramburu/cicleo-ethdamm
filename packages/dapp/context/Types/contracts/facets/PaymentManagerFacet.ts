@@ -30,13 +30,13 @@ import type {
 export type PaymentManagerDataStruct = {
   treasuryAccount: PromiseOrValue<string>;
   paymentToken: PromiseOrValue<string>;
-  owner: PromiseOrValue<string>;
+  name: PromiseOrValue<string>;
 };
 
 export type PaymentManagerDataStructOutput = [string, string, string] & {
   treasuryAccount: string;
   paymentToken: string;
-  owner: string;
+  name: string;
 };
 
 export interface PaymentManagerFacetInterface extends utils.Interface {
@@ -45,7 +45,6 @@ export interface PaymentManagerFacetInterface extends utils.Interface {
     "editPaymentManagerToken(uint256,address)": FunctionFragment;
     "editPaymentManagerTreasury(uint256,address)": FunctionFragment;
     "getPaymentManagerInfo(uint256)": FunctionFragment;
-    "sendPaymentManagerOwnership(uint256,address)": FunctionFragment;
   };
 
   getFunction(
@@ -54,7 +53,6 @@ export interface PaymentManagerFacetInterface extends utils.Interface {
       | "editPaymentManagerToken"
       | "editPaymentManagerTreasury"
       | "getPaymentManagerInfo"
-      | "sendPaymentManagerOwnership"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -77,10 +75,6 @@ export interface PaymentManagerFacetInterface extends utils.Interface {
     functionFragment: "getPaymentManagerInfo",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
-  encodeFunctionData(
-    functionFragment: "sendPaymentManagerOwnership",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "createPaymentManager",
@@ -96,10 +90,6 @@ export interface PaymentManagerFacetInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getPaymentManagerInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "sendPaymentManagerOwnership",
     data: BytesLike
   ): Result;
 
@@ -217,13 +207,12 @@ export interface PaymentManagerFacet extends BaseContract {
     getPaymentManagerInfo(
       subscriptionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[PaymentManagerDataStructOutput]>;
-
-    sendPaymentManagerOwnership(
-      ids: PromiseOrValue<BigNumberish>,
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<
+      [PaymentManagerDataStructOutput, number, string] & {
+        tokenDecimals: number;
+        tokenSymbol: string;
+      }
+    >;
   };
 
   createPaymentManager(
@@ -248,13 +237,12 @@ export interface PaymentManagerFacet extends BaseContract {
   getPaymentManagerInfo(
     subscriptionId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<PaymentManagerDataStructOutput>;
-
-  sendPaymentManagerOwnership(
-    ids: PromiseOrValue<BigNumberish>,
-    newOwner: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<
+    [PaymentManagerDataStructOutput, number, string] & {
+      tokenDecimals: number;
+      tokenSymbol: string;
+    }
+  >;
 
   callStatic: {
     createPaymentManager(
@@ -279,13 +267,12 @@ export interface PaymentManagerFacet extends BaseContract {
     getPaymentManagerInfo(
       subscriptionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PaymentManagerDataStructOutput>;
-
-    sendPaymentManagerOwnership(
-      ids: PromiseOrValue<BigNumberish>,
-      newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<
+      [PaymentManagerDataStructOutput, number, string] & {
+        tokenDecimals: number;
+        tokenSymbol: string;
+      }
+    >;
   };
 
   filters: {
@@ -354,12 +341,6 @@ export interface PaymentManagerFacet extends BaseContract {
       subscriptionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    sendPaymentManagerOwnership(
-      ids: PromiseOrValue<BigNumberish>,
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -385,12 +366,6 @@ export interface PaymentManagerFacet extends BaseContract {
     getPaymentManagerInfo(
       subscriptionId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    sendPaymentManagerOwnership(
-      ids: PromiseOrValue<BigNumberish>,
-      newOwner: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
 }
