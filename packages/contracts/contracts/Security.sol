@@ -5,9 +5,9 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title Cicleo Subscription Security
+/// @title Cicleo Payment Manager Security
 /// @author Pol Epie
-/// @notice This contract is used to manage ownership of subscription manager
+/// @notice This contract is used to manage ownership of payment manager
 contract CicleoPaymentSecurity is
     ERC721Enumerable,
     Ownable
@@ -28,7 +28,7 @@ contract CicleoPaymentSecurity is
     mapping(uint256 => uint256) public ownershipByNftId;
 
     /// @notice ownershipBySubscriptionId Mapping of the subscription manager id to the corresponding Array of NFT id
-    mapping(uint256 => uint256) public ownershipBySubscriptionId;
+    mapping(uint256 => uint256) public ownershipByPaymentManagerId;
 
     constructor(address _diamond) ERC721("Cicleo OwnerPass Payment", "COP") {
         diamond = _diamond;
@@ -119,7 +119,7 @@ contract CicleoPaymentSecurity is
     function getOwnerByPaymentManagerId(
         uint256 _subManagerId
     ) public view returns (address) {
-        return ownerOf(ownershipBySubscriptionId[_subManagerId]);
+        return ownerOf(ownershipByPaymentManagerId[_subManagerId]);
     }
 
     // Mint Functions
@@ -138,7 +138,7 @@ contract CicleoPaymentSecurity is
         _mint(_to, nftSupply);
 
         ownershipByNftId[nftSupply] = subscriptionManagerId;
-        ownershipBySubscriptionId[subscriptionManagerId] = nftSupply;
+        ownershipByPaymentManagerId[subscriptionManagerId] = nftSupply;
 
         emit MintOwnerPass(_to, subscriptionManagerId);
     }
@@ -157,6 +157,6 @@ contract CicleoPaymentSecurity is
     ) external {
         require(verifyIfOwner(msg.sender, paymentManagerId), "Only owner can burn");
         
-        _burn(ownershipBySubscriptionId[paymentManagerId]);
+        _burn(ownershipByPaymentManagerId[paymentManagerId]);
     }
 }

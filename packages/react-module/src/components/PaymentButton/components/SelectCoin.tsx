@@ -1,6 +1,7 @@
 import { BigNumber, utils } from "ethers";
 import React, { FC } from "react";
 import LoadingState from "../../LoadingState";
+import { formatNumber } from "@context/contract";
 
 type SelctCoin = {
 	isLoaded: boolean;
@@ -9,7 +10,6 @@ type SelctCoin = {
 };
 
 const SelctCoin: FC<SelctCoin> = ({ isLoaded, coinLists, setCoin }) => {
-	const [selectedCoin, setSelectedCoin] = React.useState<any>(null);
 
 	if (isLoaded == false)
 		return <LoadingState text="Scanning your ERC20 coins..." />;
@@ -49,16 +49,17 @@ const SelctCoin: FC<SelctCoin> = ({ isLoaded, coinLists, setCoin }) => {
 						Select your token to pay
 					</h3>
 				</div>
-				<div className="cap-grid cap-px-10 cap-grid-cols-4 cap-gap-4">
+				<div className="cap-grid cap-px-10 cap-grid-cols-4 cap-gap-4 cap-overflow-y-scroll">
 					{coinLists.map((coin, index) => (
 						<button
-							className="cap-bg-base-300 cap-rounded-xl cap-flex cap-flex-col cap-items-center cap-justify-center cap-py-4 cap-space-y-4"
-							onClick={() => setSelectedCoin(coin)}
+							className="cap-px-2 cap-bg-base-300 cap-rounded-xl cap-flex cap-flex-col cap-items-center cap-justify-center cap-py-4 cap-space-y-4"
+							onClick={() => setCoin(coin)}
 							key={index}
 						>
 							<img src={coin.logo_url} alt={coin.name} width={60} height={60} />
 
-							<span>{coin.name}</span>
+                            <span>{coin.name}</span>
+                            <span>{formatNumber(Number(utils.formatUnits(coin.toPay, coin.decimals)), 2)} {coin.symbol}</span>
 						</button>
 					))}
 				</div>

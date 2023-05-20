@@ -18,7 +18,6 @@ type Coin = {
 };
 
 type HeaderSubscriptionInfo = {
-	paymentInfoIsFetched: boolean;
 	inToken: Coin;
 	_chains: Network[];
 	networkSelected: boolean;
@@ -42,7 +41,6 @@ const ArrowGetBack: FC<ArrowGetBack> = ({ onClick }) => {
 };
 
 const HeaderSubscriptionInfo: FC<HeaderSubscriptionInfo> = ({
-	paymentInfoIsFetched,
 	inToken,
 	_chains,
 	networkSelected,

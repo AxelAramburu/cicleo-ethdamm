@@ -26,7 +26,7 @@ contract PaymentFacet {
     );
 
     event PaymentDoneWithCicleo(
-        uint256 indexed subscriptionId,
+        uint256 indexed paymentManagerId,
         address indexed user,
         string indexed nameOfPayment,
         uint256 price

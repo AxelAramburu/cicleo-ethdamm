@@ -3,13 +3,17 @@ import { BigNumber, Signer, ethers, providers } from "ethers";
 import "./PaymentButton.css";
 import TextWhite from "@assets/logo_text_white.svg";
 import PayImage from "@assets/pay.svg";
-import { reduceAddress } from "@context/contract";
+import { reduceAddress, openOceanIface } from "@context/contract";
 import {
 	SelectNetwork,
 	Login,
 	SelectCoin,
-	HeaderSubscriptionInfo,
+    HeaderSubscriptionInfo,
+    Payment
 } from "./components";
+import {
+    PaymentFacet__factory
+ } from "@context/Types";
 
 import axios from "axios";
 import {
@@ -92,6 +96,11 @@ let _chains: Network[] = [
 	},
 ];
 
+interface FunctionStep {
+    1: (isInfinityToken: boolean, tokenApproval: number)=> Promise<void>;
+    2: () => Promise<void>;
+}
+
 const PaymentButton: FC<PaymentButton> = ({
 	chainId,
 	paymentManagerId,
@@ -101,17 +110,27 @@ const PaymentButton: FC<PaymentButton> = ({
 	const [account, setAccount] = useState<string | null>(null);
 	const [isBridged, setIsBridged] = useState(false);
 	const [networkSelected, setNetworkSelected] = useState(false);
-	const [coinSelected, setcoinSelected] = useState(false);
 	const [coinLists, setCoinLists] = useState([]);
 	const [coin, setCoin] = useState<coin>({} as coin);
+    const [paymentManagerInfo, setPaymentManagerInfo] = useState<any>(undefined);
+    
+    const [step, setStep] = useState(0);
+    const [stepFunction, setStepFunction] = useState<FunctionStep>({} as FunctionStep)
+    const [isPurchased, setIsPurchased] = useState(false);
+    const [swapData, setSwapData] = useState<any>(null);
+    const [tokenApproval, setTokenApproval] = useState(BigNumber.from(0));
 	const [paymentInfoIsFetched, setPaymentInfoIsFetched] = useState(false);
 	const [handleEmail, setHandleEmail] = useState(false);
 
+    const [errorMessage, setErrorMessage] = useState("");
+    const [loadingStep, setLoadingStep] = useState(0);
+    const [isInfinityToken, setIsInfinityToken] = useState(true);
+    const [approvalToken, setApprovalToken] = useState(0);
+
 	const [isLoaded, setIsLoaded] = useState(false);
 
-	const changeToken = async (coin: any) => {
-		if (!account) return;
-
+    const changeToken = async (coin: any) => {
+        setIsLoaded(true);
 		const erc20Contract = {
 			address: coin.id,
 			abi: erc20ABI,
@@ -122,7 +141,16 @@ const PaymentButton: FC<PaymentButton> = ({
 			functionName: "balanceOf",
 			// @ts-ignore
 			args: [account],
-		});
+        });
+        
+        const approval = await readContract({
+			...erc20Contract,
+			functionName: "allowance",
+			// @ts-ignore
+			args: [account, "0xA73a0d640d421e0800FDc041DA7bA954605E95D6"],
+        });
+        
+        console.log(approval)
 
 		let _coin = coin;
 
@@ -130,7 +158,161 @@ const PaymentButton: FC<PaymentButton> = ({
 			ethers.utils.formatUnits(balance, coin.decimals).toString()
 		);
 
-		setCoin(_coin);
+        setCoin(_coin);
+        
+        setIsLoaded(true);
+
+        setTokenApproval(approval);
+
+        const destToken = paymentManagerInfo[0][1].toLowerCase();
+        const destTokenDecimals = paymentManagerInfo[1];
+        const destTokenSymbol = paymentManagerInfo[2];
+
+        let _stepFunction = {
+            1: async (isInfinityToken: boolean, tokenApproval: number, swapData: any) => {
+                let _approval = ethers.utils.parseUnits(tokenApproval.toString(), swapData.inToken.decimals);
+
+                if (isInfinityToken) {
+                    _approval = ethers.constants.MaxUint256;
+                }
+
+                const approval = await prepareWriteContract({
+                    ...erc20Contract,
+                    functionName: "approve",
+                    args: [
+                        "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
+                        _approval,
+                    ],
+                });
+
+                setLoadingStep(1);
+
+                const tx = await writeContract(approval);
+
+                await tx.wait();
+
+                setLoadingStep(0);
+                setStep(2);
+            },
+            2: async () => {
+                
+            }
+        }
+
+        //If a swap is needed
+        if (destToken != coin.id.toLowerCase()) {
+            let data = JSON.stringify({
+                tokenIn: coin.id,
+                price: price.toString()
+            });
+
+            let config = {
+                method: "post",
+                maxBodyLength: Infinity,
+                url: `https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getExactPrice/${paymentManagerId}`,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                data: data,
+            };
+
+            const resp = await axios(config);
+
+            console.log(resp.data)
+
+            setSwapData(resp.data);
+
+            let decodedData = openOceanIface.parseTransaction({
+                data: resp.data.data.data,
+                value: resp.data.data.value,
+            });
+
+            console.log("decodeddata");
+            console.log(decodedData);
+
+            _stepFunction[2] = async () => {
+                const pay = await prepareWriteContract({
+                    address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
+                    abi: PaymentFacet__factory.abi,
+                    functionName: "payWithCicleoWithSwap",
+                    args: [
+                        //@ts-ignore
+                        paymentManagerId,
+                        price,
+                        name,
+                        decodedData.args.caller, decodedData.args.desc, decodedData.args.calls
+                    ],
+                });
+
+                setLoadingStep(2);
+
+                try {
+                    const tx = await writeContract(pay);
+
+                    console.log(tx);
+
+                    await tx.wait();
+
+                    setIsPurchased(true);
+                } catch (error: any) {
+                    setErrorMessage(error.message);
+                }
+            }
+        } else {
+            setSwapData({
+                inToken: {
+                    address: destToken,
+                    symbol: destTokenSymbol,
+                    decimals: destTokenDecimals,
+                },
+                inAmount: price.toString(),
+                outToken: {
+                    address: destToken,
+                    symbol: destTokenSymbol,
+                    decimals: destTokenDecimals,
+                },
+                outAmount: price.toString(),
+            });
+
+            _stepFunction[2] = async () => {
+                const pay = await prepareWriteContract({
+                    address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
+                    abi: PaymentFacet__factory.abi,
+                    // @ts-ignore
+                    functionName: "payWithCicleo",
+                    args: [
+                        //@ts-ignore
+                        paymentManagerId, price.toString(), name
+                    ],
+                });
+
+                setLoadingStep(2);
+
+                try {
+                    const tx = await writeContract(pay);
+
+                    console.log(tx);
+
+                    await tx.wait();
+
+                    setIsPurchased(true);
+                } catch (error: any) {
+                    setErrorMessage(error.message);
+                }
+
+                
+            }
+        }
+
+        setStepFunction(_stepFunction as FunctionStep);
+
+        let _step = 1
+
+        if (approval.gte(price)) {
+            _step = 2;
+        }
+
+        setStep(_step);
 	};
 
 	const getUserTokenList = async () => {
@@ -150,7 +332,16 @@ const PaymentButton: FC<PaymentButton> = ({
 
 		setCoinLists(userInfo.data.coinList);
 		setIsLoaded(true);
-	};
+    };
+    
+    const getPaymentManagerInfo = async () => {
+        const paymentManagerInfo = await axios.get(
+            `https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getPaymentManagerInfo/${paymentManagerId}`);
+        
+        console.log(paymentManagerInfo.data);
+
+        setPaymentManagerInfo(paymentManagerInfo.data);
+    }
 
 	useEffect(() => {
 		getUserTokenList();
@@ -169,9 +360,10 @@ const PaymentButton: FC<PaymentButton> = ({
 			</label>
 
 			<input
-				type="checkbox"
-				id={"cicleo-payment-modal-" + paymentManagerId}
-				className="cap-modal-toggle"
+                type="checkbox"
+                id={"cicleo-payment-modal-" + paymentManagerId}
+                className="cap-modal-toggle"
+                onChange={getPaymentManagerInfo}
 			/>
 			<div className="cap-modal cap-modal-bottom sm:cap-modal-middle !cap-ml-0">
 				<div className="cap-modal-box cap-relative cap-p-0 cap-text-white">
@@ -187,8 +379,7 @@ const PaymentButton: FC<PaymentButton> = ({
 						✕
 					</label>
 
-					<HeaderSubscriptionInfo
-						paymentInfoIsFetched={paymentInfoIsFetched}
+                    {paymentManagerInfo != undefined && <HeaderSubscriptionInfo
 						_chains={_chains}
 						networkSelected={networkSelected}
 						inToken={{
@@ -196,9 +387,10 @@ const PaymentButton: FC<PaymentButton> = ({
 							symbol: coin.symbol,
 							balance: coin.balance,
 						}}
-						price={price.toString()}
+						price={ethers.utils.formatUnits(price, paymentManagerInfo[1])}
 						name={name}
-					/>
+					/>}
+					
 
 					{(() => {
 						if (account == null)
@@ -244,16 +436,48 @@ const PaymentButton: FC<PaymentButton> = ({
 								/>
 							);
 
-						if (!coinSelected)
+						if (coin.id == undefined)
 							return (
 								<SelectCoin
 									isLoaded={isLoaded}
 									coinLists={coinLists}
 									setCoin={changeToken}
 								/>
-							);
+                            );
+                    
+                        if (isPurchased) {
+                            return (
+                                <div className="cap-p-4 cap-space-y-8">
+                                    <h2 className="cap-text-xl cap-font-semibold">
+                                        Thanks for your subscription!
+                                    </h2>
 
-						return <></>;
+                                    <div className="cap-shadow-lg cap-alert cap-alert-success">
+                                        <div>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="cap-flex-shrink-0 cap-w-6 cap-h-6 cap-stroke-current"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                            </svg>
+                                            <div className="cap-flex cap-flex-col">
+                                                <span>Your payment has been confirmed!</span>
+                                                <span>You can close this page</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        return <Payment tokenApproval={{isInfinity: isInfinityToken, setIsInfinity: setIsInfinityToken, setAmount: setApprovalToken, amount: approvalToken}} loadingStep={loadingStep} step={step} errorMessage={errorMessage} stepFunction={stepFunction} setStep={setStep} isLoaded={isLoaded} swapData={swapData}/>;
 					})()}
 				</div>
 			</div>

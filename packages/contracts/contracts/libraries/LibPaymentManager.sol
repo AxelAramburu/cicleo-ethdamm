@@ -19,7 +19,7 @@ library LibPaymentManager {
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("com.cicleo.facets.paymentmanager");
 
     struct DiamondStorage {
-        /// @notice Mapping to store the payment subscriptions info
+        /// @notice Mapping to store the payment managers info
         mapping(uint256 => PaymentManagerData) paymentManagers;
         /// @notice Count of all payment manager ids
         uint256 paymentManagerCount;
@@ -32,8 +32,8 @@ library LibPaymentManager {
         }
     }
 
-    function getPaymentManagerInfo(uint256 subscriptionId) internal view returns (PaymentManagerData memory) {
+    function getPaymentManagerInfo(uint256 paymentManagerId) internal view returns (PaymentManagerData memory) {
         DiamondStorage storage ds = diamondStorage();
-        return ds.paymentManagers[subscriptionId];
+        return ds.paymentManagers[paymentManagerId];
     }  
 }   

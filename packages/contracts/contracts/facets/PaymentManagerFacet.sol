@@ -20,7 +20,7 @@ contract PaymentManagerFacet {
         keccak256("com.cicleo.facets.paymentmanager");
 
     struct Storage {
-        /// @notice Mapping to store the payment subscriptions info
+        /// @notice Mapping to store the payment managers info
         mapping(uint256 => PaymentManagerData) paymentManagers;
         /// @notice Count of all payment manager ids
         uint256 paymentManagerCount;
@@ -36,17 +36,17 @@ contract PaymentManagerFacet {
     );
 
     event PaymentManagerTokenChanged(
-        uint256 indexed subscriptionId,
+        uint256 indexed paymentManagerId,
         address indexed paymentToken
     );
 
     event PaymentManagerTreasuryChanged(
-        uint256 indexed subscriptionId,
+        uint256 indexed paymentManagerId,
         address indexed treasury
     );
 
     event PaymentManagerOwnerChanged(
-        uint256 indexed subscriptionId,
+        uint256 indexed paymentManagerId,
         address indexed owner
     );
 
@@ -60,9 +60,9 @@ contract PaymentManagerFacet {
 
     //----External View function--------------
 
-    function getPaymentManagerInfo(uint256 subscriptionId) public view returns (PaymentManagerData memory, uint8 tokenDecimals, string memory tokenSymbol) {
+    function getPaymentManagerInfo(uint256 paymentManagerId) public view returns (PaymentManagerData memory, uint8 tokenDecimals, string memory tokenSymbol) {
         Storage storage ds = getStorage();
-        return (ds.paymentManagers[subscriptionId], ds.paymentManagers[subscriptionId].paymentToken.decimals(), ds.paymentManagers[subscriptionId].paymentToken.symbol());
+        return (ds.paymentManagers[paymentManagerId], ds.paymentManagers[paymentManagerId].paymentToken.decimals(), ds.paymentManagers[paymentManagerId].paymentToken.symbol());
     }
 
     //----External Functions -----------------------

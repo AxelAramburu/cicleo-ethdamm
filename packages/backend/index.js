@@ -3,20 +3,18 @@ const cors = require("cors");
 const axios = require("axios");
 const ethers = require("ethers");
 const bp = require("body-parser");
-require("dotenv").config()
-const {BigNumber, utils} = require("ethers");
+require("dotenv").config();
+const { BigNumber, utils } = require("ethers");
 
 const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
 const ERC20ABI = require("./ABI/ERC20.json");
 
-const asyncMiddleware = fn =>
-  (req, res, next) => {
-    Promise.resolve(fn(req, res, next))
-      .catch(err => {
+const asyncMiddleware = (fn) => (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch((err) => {
         console.log(err);
-        res.status(500).send('Something broke!');
-      })
-  };
+        res.status(500).send("Something broke!");
+    });
+};
 
 const contracts = {
     250: {
@@ -48,12 +46,11 @@ const tableChangeBlockchain = {
     137: "matic",
 };
 
-
 /* Express Part */
 const app = express();
 
-app.use(cors())
-app.options('*', cors()); 
+app.use(cors());
+app.options("*", cors());
 
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
@@ -65,19 +62,22 @@ app.get(
     })
 );
 
-app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromChain",
+app.post(
+    "/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromChain",
     asyncMiddleware(async (req, res, next) => {
         if (tableChangeBlockchain[req.params.fromChain] == undefined)
             return res
                 .status(400)
                 .json({ message: "Blockchain not supported" });
-    
+
         var config = {
             method: "get",
             maxBodyLength: Infinity,
-            url: `https://pro-openapi.debank.com/v1/user/token_list?id=${req.params.user
-                }&chain_id=${tableChangeBlockchain[req.params.fromChain]
-                }&is_all=false`,
+            url: `https://pro-openapi.debank.com/v1/user/token_list?id=${
+                req.params.user
+            }&chain_id=${
+                tableChangeBlockchain[req.params.fromChain]
+            }&is_all=false`,
             headers: {
                 AccessKey: process.env.DEBANK_ACCESS_KEY,
             },
@@ -102,7 +102,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
             req.params.paymentManagerId
         );
 
-        console.log(paymentManagerInfo)
+        console.log(paymentManagerInfo);
 
         const tokenOutAddress = paymentManagerInfo[0].paymentToken;
         const tokenOutAmount = BigNumber.from(req.body.tokenOutAmount);
@@ -113,17 +113,13 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
                 continue;
             }
 
-            if (
-                coinData[i].id.toUpperCase() ==
-                tokenOutAddress.toUpperCase()
-            ) {
+            if (coinData[i].id.toUpperCase() == tokenOutAddress.toUpperCase()) {
                 coinData[i].toPay = tokenOutAmount.toString();
                 continue;
             }
 
             //In case of bridging
             if (req.params.paymentManagerChain != req.params.fromChain) {
-
             } else {
                 try {
                     const price = await axios.get(
@@ -158,7 +154,7 @@ app.post("/chain/:paymentManagerChain/getUserInfo/:paymentManagerId/:user/:fromC
             coinList.push(coinData[i]);
         }
 
-        res.send({coinList: coinList});
+        res.send({ coinList: coinList });
     })
 );
 
@@ -166,7 +162,7 @@ app.post(
     "/chain/:blockchain/getExactPrice/:paymentManagerId",
     asyncMiddleware(async (req, res, next) => {
         const tokenIn = req.body.tokenIn;
-        
+
         const _price = req.body.price;
 
         const PROVIDER = new ethers.providers.JsonRpcProvider(
@@ -179,20 +175,18 @@ app.post(
             PROVIDER
         );
 
-        const token = new ethers.Contract(
-            tokenIn,
-            ERC20ABI,
-            PROVIDER
-        );
+        const token = new ethers.Contract(tokenIn, ERC20ABI, PROVIDER);
 
         const tokenInDecimals = await token.decimals();
 
-        const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(req.params.paymentManagerId)
+        const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(
+            req.params.paymentManagerId
+        );
 
-        console.log(paymentManagerInfo)
+        console.log(paymentManagerInfo);
 
         const tokenOut = paymentManagerInfo[0].paymentToken;
-            
+
         if (tableChangeBlockchain[req.params.blockchain] == undefined)
             return res
                 .status(400)
@@ -218,8 +212,8 @@ app.post(
         await sleep(100);
 
         while (!isGood) {
-            console.log("Verfiy", estimation.toString())
-            
+            console.log("Verfiy", estimation.toString());
+
             const verify = await axios.get(
                 `https://ethapi.openocean.finance/v2/${req.params.blockchain}/quote` +
                     `?inTokenAddress=${tokenIn}` +
@@ -228,7 +222,7 @@ app.post(
                     `&gasPrice=5` +
                     `&slippage=1`
             );
-            console.log(verify.data.outAmount)
+            console.log(verify.data.outAmount);
 
             if (BigNumber.from(verify.data.outAmount).gte(_price)) {
                 isGood = true;
@@ -256,25 +250,30 @@ app.post(
                 `&slippage=1`
         );
 
-        res.send(swap.data);
+        res.send(swap.data.data);
     })
 );
 
-app.get("/chain/:blockchain/getPaymentManagerInfo/:paymentManagerId", asyncMiddleware(async (req, res, next) => { 
-    const PROVIDER = new ethers.providers.JsonRpcProvider(
-        RPCs[req.params.blockchain]
-    );
+app.get(
+    "/chain/:blockchain/getPaymentManagerInfo/:paymentManagerId",
+    asyncMiddleware(async (req, res, next) => {
+        const PROVIDER = new ethers.providers.JsonRpcProvider(
+            RPCs[req.params.blockchain]
+        );
 
-    const paymentManager = new ethers.Contract(
-        contracts[req.params.blockchain].diamond,
-        PaymentManagerABI,
-        PROVIDER
-    );
+        const paymentManager = new ethers.Contract(
+            contracts[req.params.blockchain].diamond,
+            PaymentManagerABI,
+            PROVIDER
+        );
 
-    const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(req.params.paymentManagerId)
+        const paymentManagerInfo = await paymentManager.getPaymentManagerInfo(
+            req.params.paymentManagerId
+        );
 
-    res.send(paymentManagerInfo)
-}))
+        res.send(paymentManagerInfo);
+    })
+);
 
 app.listen(6001);
 
