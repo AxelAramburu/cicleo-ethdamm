@@ -32,10 +32,11 @@ const SelectNetwork: FC<SelectNetwork> = ({ handleSelectNetwork, _chains }) => {
 		connectors: [new InjectedConnector({ chains })],
 	});
 
-	const _handleSelectNetwork = async (chain: Network) => {
-		const result = await switchNetwork({
-			chainId: chain.chainId,
-		});
+    const _handleSelectNetwork = async (chain: Network) => {
+        const result = await connect({
+            chainId: chain.chainId,
+            connector: new InjectedConnector(),
+        })
 
 		if (result) {
 			handleSelectNetwork(chain.chainId);
