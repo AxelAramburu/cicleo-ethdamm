@@ -53,18 +53,14 @@ const Home = () => {
 													{data.symbol}
 												</span>
 											</div>
-											<div>
-												<span className="text-xl py-2">
-													Address of Treasury:
-												</span>
-												<span className="text-lg">
-													{reduceAddress(data.treasuryAccount)}
-												</span>
-											</div>
+
 											<div className="flex justify-center pt-10">
-												<button className="btn btn-primary w-[300px]">
+												<Link
+													href={`/manage/${index}`}
+													className="btn btn-primary w-fit px-16"
+												>
 													Manage
-												</button>
+												</Link>
 											</div>
 										</div>
 									))}
