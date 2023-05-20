@@ -31,10 +31,10 @@ const Home = () => {
 		<Layout>
 			<div>
 				<h2 className="text-2xl flex pb-4">Payment Manager</h2>
+				<Link href="/create" className="btn btn-primary w-fit">
+					Create one
+				</Link>
 				<div className="text-2xl flex flex-col justify-center align-center gap-10 max-w-fit p-0 m-auto">
-					<Link href="/create" className="btn btn-primary w-fit">
-						Create one
-					</Link>
 					<div className="">
 						<h2 className="text-2xl text-center">
 							Manage your payment manager(s)

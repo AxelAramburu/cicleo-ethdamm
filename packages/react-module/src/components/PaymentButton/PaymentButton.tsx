@@ -105,6 +105,7 @@ const PaymentButton: FC<PaymentButton> = ({
 	const [coinLists, setCoinLists] = useState([]);
 	const [coin, setCoin] = useState<coin>({} as coin);
 	const [paymentInfoIsFetched, setPaymentInfoIsFetched] = useState(false);
+	const [handleEmail, setHandleEmail] = useState(false);
 
 	const [isLoaded, setIsLoaded] = useState(false);
 
@@ -208,7 +209,31 @@ const PaymentButton: FC<PaymentButton> = ({
 									}}
 								/>
 							);
-
+						if (!handleEmail)
+							return (
+								<div className="cap-pt-4 cap-pb-6 cap-flex cap-flex-col cap-justify-center cap-align-center cap-items-center">
+									<div className="cap-flex cap-flex-col cap-justify-center cap-w-full cap-items-center cap-py-4">
+										<h3 className="cap-text-lg cap-font-bold">
+											Enter your mail
+										</h3>
+									</div>
+									<div className="cap-rounded-xl">
+										<input
+											type="email"
+											placeholder="example@example.com"
+											className="cap-input cap-input-bordered cap-w-full cap-max-w-xs"
+										/>
+									</div>
+									<div className="cap-py-4">
+										<button
+											onClick={() => setHandleEmail(true)}
+											className="cap-btn cap-btn-primary cap-space-x-2 !cap-bg-primary !cap-text-white"
+										>
+											<span>Continue</span>
+										</button>
+									</div>
+								</div>
+							);
 						if (!networkSelected)
 							return (
 								<SelectNetwork
