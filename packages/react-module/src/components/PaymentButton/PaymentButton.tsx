@@ -4,7 +4,12 @@ import "./PaymentButton.css";
 import TextWhite from "@assets/logo_text_white.svg";
 import PayImage from "@assets/pay.svg";
 import { reduceAddress } from "@context/contract";
-import { SelectNetwork, Login, SelectCoin } from "./components";
+import {
+	SelectNetwork,
+	Login,
+	SelectCoin,
+	HeaderSubscriptionInfo,
+} from "./components";
 
 import axios from "axios";
 import {
@@ -21,10 +26,23 @@ import {
 } from "@wagmi/core";
 
 type PaymentButton = {
-	subscriptionId: number;
+	paymentManagerId: number;
 	chainId: number;
-	subManagerId: number;
-	referral?: string;
+	price: BigNumber;
+	name: string;
+};
+
+type PaymentInfo = {
+	id: number;
+	address: string;
+	name: string;
+	owner: string;
+	decimals: number;
+	tokenAddress: string;
+	treasury: string;
+	tokenSymbol: string;
+	allowance: BigNumber;
+	duration: number;
 };
 
 type Network = {
@@ -75,18 +93,44 @@ let _chains: Network[] = [
 ];
 
 const PaymentButton: FC<PaymentButton> = ({
-	subscriptionId,
-	subManagerId,
 	chainId,
-	referral,
+	paymentManagerId,
+	price,
+	name,
 }) => {
 	const [account, setAccount] = useState<string | null>(null);
 	const [isBridged, setIsBridged] = useState(false);
 	const [networkSelected, setNetworkSelected] = useState(false);
 	const [coinSelected, setcoinSelected] = useState(false);
 	const [coinLists, setCoinLists] = useState([]);
+	const [coin, setCoin] = useState<coin>({} as coin);
+	const [paymentInfoIsFetched, setPaymentInfoIsFetched] = useState(false);
 
 	const [isLoaded, setIsLoaded] = useState(false);
+
+	const changeToken = async (coin: any) => {
+		if (!account) return;
+
+		const erc20Contract = {
+			address: coin.id,
+			abi: erc20ABI,
+		};
+
+		const balance = await readContract({
+			...erc20Contract,
+			functionName: "balanceOf",
+			// @ts-ignore
+			args: [account],
+		});
+
+		let _coin = coin;
+
+		_coin.balance = Number(
+			ethers.utils.formatUnits(balance, coin.decimals).toString()
+		);
+
+		setCoin(_coin);
+	};
 
 	const getUserTokenList = async () => {
 		const { chain, chains } = getNetwork();
@@ -98,8 +142,9 @@ const PaymentButton: FC<PaymentButton> = ({
 
 		if (!address) return;
 
-		const userInfo = await axios.get(
-			`https://cicleo-ethdamm-dapp.vercel.app/chain/${sourceChainId}/getUserInfo/${address}/${sourceChainId}`
+		const userInfo = await axios.post(
+			`https://cicleo-ethdamm-dapp.vercel.app/chain/${sourceChainId}/getUserInfo/${paymentManagerId}/${address}/${sourceChainId}`,
+			{ tokenOutAmount: price.toString() }
 		);
 
 		setCoinLists(userInfo.data.coinList);
@@ -108,13 +153,14 @@ const PaymentButton: FC<PaymentButton> = ({
 	};
 
 	useEffect(() => {
+		getUserTokenList();
 		//createContracts();
 	}, [networkSelected]);
 
 	return (
 		<>
 			<label
-				htmlFor={"cicleo-payment-modal-" + subscriptionId}
+				htmlFor={"cicleo-payment-modal-" + paymentManagerId}
 				className="cap-btn cap-btn-primary cap-max-w-[200px] cap-flex cap-justify-center "
 			>
 				<div className="cap-flex cap-items-center cap-text cap-justify-center cap-text-white cap-w-full cap-space-x-2">
@@ -124,22 +170,35 @@ const PaymentButton: FC<PaymentButton> = ({
 
 			<input
 				type="checkbox"
-				id={"cicleo-payment-modal-" + subscriptionId}
+				id={"cicleo-payment-modal-" + paymentManagerId}
 				className="cap-modal-toggle"
 			/>
 			<div className="cap-modal cap-modal-bottom sm:cap-modal-middle !cap-ml-0">
 				<div className="cap-modal-box cap-relative cap-p-0 cap-text-white">
-					<div className="cap-px-4 cap-py-3 cap-bg-base-300 cap-flex cap-justify-between cap-items-center">
+					<div className="cap-p-6 cap-bg-base-300 cap-flex cap-justify-between cap-items-center">
 						<img src={TextWhite} alt="" className="cap-h-10" />
 						<span className="cap-mr-8">{reduceAddress(account || "")}</span>
 					</div>
 					<div></div>
 					<label
-						htmlFor={"cicleo-payment-modal-" + subscriptionId}
+						htmlFor={"cicleo-payment-modal-" + paymentManagerId}
 						className="cap-absolute cap-btn cap-btn-sm cap-btn-circle cap-right-2 cap-top-2"
 					>
 						✕
 					</label>
+
+					<HeaderSubscriptionInfo
+						paymentInfoIsFetched={paymentInfoIsFetched}
+						_chains={_chains}
+						networkSelected={networkSelected}
+						inToken={{
+							image: coin.logo_url,
+							symbol: coin.symbol,
+							balance: coin.balance,
+						}}
+						price={price.toString()}
+						name={name}
+					/>
 
 					{(() => {
 						if (account == null)
@@ -164,13 +223,13 @@ const PaymentButton: FC<PaymentButton> = ({
 						if (!coinSelected)
 							return (
 								<SelectCoin
-									isLoaded={true}
-									coinLists={[]}
-									setCoin={(coin: any) => {}}
+									isLoaded={isLoaded}
+									coinLists={coinLists}
+									setCoin={changeToken}
 								/>
-                            );
-                        
-                        return (<></>)
+							);
+
+						return <></>;
 					})()}
 				</div>
 			</div>
