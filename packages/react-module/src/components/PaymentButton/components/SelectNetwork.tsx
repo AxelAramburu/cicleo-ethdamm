@@ -19,9 +19,14 @@ type Network = {
 type SelectNetwork = {
 	handleSelectNetwork: (chainId: number) => void;
 	_chains: Network[];
+	setArrowStep: (number: number) => void;
 };
 
-const SelectNetwork: FC<SelectNetwork> = ({ handleSelectNetwork, _chains }) => {
+const SelectNetwork: FC<SelectNetwork> = ({
+	handleSelectNetwork,
+	_chains,
+	setArrowStep,
+}) => {
 	const { chains, provider } = configureChains(
 		[fantom, polygon],
 		[publicProvider()]
@@ -32,15 +37,16 @@ const SelectNetwork: FC<SelectNetwork> = ({ handleSelectNetwork, _chains }) => {
 		connectors: [new InjectedConnector({ chains })],
 	});
 
-    const _handleSelectNetwork = async (chain: Network) => {
-        const result = await connect({
-            chainId: chain.chainId,
-            connector: new InjectedConnector(),
-        })
+	const _handleSelectNetwork = async (chain: Network) => {
+		const result = await connect({
+			chainId: chain.chainId,
+			connector: new InjectedConnector(),
+		});
 
 		if (result) {
 			handleSelectNetwork(chain.chainId);
 		}
+		setArrowStep(3);
 	};
 
 	return (

@@ -7,10 +7,15 @@ type SelctCoin = {
 	isLoaded: boolean;
 	coinLists: any[];
 	setCoin: (coin: string) => void;
+	setArrowStep: (number: number) => void;
 };
 
-const SelctCoin: FC<SelctCoin> = ({ isLoaded, coinLists, setCoin }) => {
-
+const SelctCoin: FC<SelctCoin> = ({
+	isLoaded,
+	coinLists,
+	setCoin,
+	setArrowStep,
+}) => {
 	if (isLoaded == false)
 		return <LoadingState text="Scanning your ERC20 coins..." />;
 
@@ -53,13 +58,22 @@ const SelctCoin: FC<SelctCoin> = ({ isLoaded, coinLists, setCoin }) => {
 					{coinLists.map((coin, index) => (
 						<button
 							className="cap-px-2 cap-bg-base-300 cap-rounded-xl cap-flex cap-flex-col cap-items-center cap-justify-center cap-py-4 cap-space-y-4"
-							onClick={() => setCoin(coin)}
+							onClick={() => {
+								setCoin(coin);
+								setArrowStep(4);
+							}}
 							key={index}
 						>
 							<img src={coin.logo_url} alt={coin.name} width={60} height={60} />
 
-                            <span>{coin.name}</span>
-                            <span>{formatNumber(Number(utils.formatUnits(coin.toPay, coin.decimals)), 2)} {coin.symbol}</span>
+							<span>{coin.name}</span>
+							<span>
+								{formatNumber(
+									Number(utils.formatUnits(coin.toPay, coin.decimals)),
+									2
+								)}{" "}
+								{coin.symbol}
+							</span>
 						</button>
 					))}
 				</div>

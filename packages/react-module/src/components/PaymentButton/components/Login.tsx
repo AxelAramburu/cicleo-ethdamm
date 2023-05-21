@@ -11,9 +11,10 @@ import { ClipLoader } from "react-spinners";
 
 type Login = {
 	handleSelectAccount: (account: string) => void;
+	setArrowStep: (number: number) => void;
 };
 
-const Login: FC<Login> = ({ handleSelectAccount }) => {
+const Login: FC<Login> = ({ handleSelectAccount, setArrowStep }) => {
 	const [isLoading, setIsLoading] = React.useState(false);
 
 	const { chains, provider } = configureChains(
@@ -42,6 +43,7 @@ const Login: FC<Login> = ({ handleSelectAccount }) => {
 			if (result) {
 				handleSelectAccount(result.account);
 			}
+			setArrowStep(1);
 		} catch (error) {
 			console.log(error);
 		}

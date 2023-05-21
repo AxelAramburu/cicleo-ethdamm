@@ -23,6 +23,11 @@ type HeaderSubscriptionInfo = {
 	networkSelected: boolean;
 	price: string;
 	name: string;
+	handleBackToken: () => void;
+	handleBackOnNetwork: () => void;
+	handleBackConnect: () => void;
+	handleBackMail: () => void;
+	arrowStep: number;
 };
 
 type ArrowGetBack = {
@@ -46,6 +51,11 @@ const HeaderSubscriptionInfo: FC<HeaderSubscriptionInfo> = ({
 	networkSelected,
 	price,
 	name,
+	handleBackToken,
+	handleBackOnNetwork,
+	handleBackMail,
+	handleBackConnect,
+	arrowStep,
 }) => {
 	const { chain, chains } = getNetwork();
 	let paymentChainId = 0;
@@ -64,8 +74,25 @@ const HeaderSubscriptionInfo: FC<HeaderSubscriptionInfo> = ({
 
 	return (
 		<>
-			<div className="cap-flex cap-p-4 cap-w-full cap-space-x-2 cap-gap-2 cap-items-center cap-justify-between cap-border-primary cap-text-xl">
+			<div className="cap-flex cap-p-6 cap-w-full cap-space-x-2 cap-gap-2 cap-items-center cap-justify-between cap-border-primary cap-text-xl">
 				<div className="cap-flex cap-items-center cap-space-x-2">
+					{(() => {
+						if (arrowStep == 0) {
+							return <></>;
+						}
+
+						if (arrowStep == 1)
+							return <ArrowGetBack onClick={handleBackConnect} />;
+
+						if (arrowStep == 2)
+							return <ArrowGetBack onClick={() => handleBackMail()} />;
+
+						if (arrowStep == 3)
+							return <ArrowGetBack onClick={() => handleBackOnNetwork()} />;
+
+						if (arrowStep == 4)
+							return <ArrowGetBack onClick={handleBackToken} />;
+					})()}
 					{networkSelected == true && chainInfo != undefined && (
 						<img
 							src={chainInfo.image}
