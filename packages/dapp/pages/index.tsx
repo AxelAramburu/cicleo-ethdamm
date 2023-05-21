@@ -18,7 +18,7 @@ const Home = () => {
 	console.log(address);
 
 	const { data } = useContractRead({
-		address: "0x471e8591f720aD2fCc360081a60712F9f6138665",
+		address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
 		abi: AdminFacet__factory.abi,
 		functionName: "getPaymentManagersByUser",
 		//@ts-ignore
@@ -30,11 +30,11 @@ const Home = () => {
 	return (
 		<Layout>
 			<div>
-				<h2 className="text-2xl flex pb-4">Payment Manager</h2>
+				<h2 className="flex pb-4 text-2xl">Payment Manager</h2>
 				<Link href="/create" className="btn btn-primary w-fit">
 					Create one
 				</Link>
-				<div className="text-2xl flex flex-col justify-center align-center gap-10 max-w-fit p-0 m-auto">
+				<div className="flex flex-col justify-center gap-10 p-0 m-auto text-2xl align-center max-w-fit">
 					<div className="">
 						<h2 className="text-2xl text-center">
 							Manage your payment manager(s)
@@ -44,12 +44,12 @@ const Home = () => {
 								{data != undefined &&
 									data.map((data, index) => (
 										<div
-											className="flex flex-col col-span-1 bg-black rounded-2xl p-6 gap-4"
+											className="flex flex-col col-span-1 gap-4 p-6 bg-black rounded-2xl"
 											key={index}
 										>
 											<div className="grid grid-cols-2">
-												<span className="text-3xl py-2">{data.name}</span>
-												<span className="text-3xl py-2 text-right">
+												<span className="py-2 text-3xl">{data.name}</span>
+												<span className="py-2 text-3xl text-right">
 													{data.symbol}
 												</span>
 											</div>
@@ -57,7 +57,7 @@ const Home = () => {
 											<div className="flex justify-center pt-10">
 												<Link
 													href={`/manage/${index}`}
-													className="btn btn-primary w-fit px-16"
+													className="px-16 btn btn-primary w-fit"
 												>
 													Manage
 												</Link>

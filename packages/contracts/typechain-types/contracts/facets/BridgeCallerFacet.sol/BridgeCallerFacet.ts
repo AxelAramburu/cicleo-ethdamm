@@ -148,7 +148,7 @@ export declare namespace LibSwap {
 
 export interface BridgeCallerFacetInterface extends utils.Interface {
   functions: {
-    "payWithCicleoWithBridge((uint256,uint256,uint256,string,address),(bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(address,address,address,address,uint256,bytes,bool)[],(uint256,uint256,uint256,uint256,address,bytes,bytes),bytes)": FunctionFragment;
+    "payWithCicleoWithBridge((uint256,uint256,uint256,string,address),(bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(address,address,address,address,uint256,bytes,bool)[],(uint256,uint256,uint256,uint256,address,bytes,bytes),uint256,bytes)": FunctionFragment;
   };
 
   getFunction(
@@ -162,6 +162,7 @@ export interface BridgeCallerFacetInterface extends utils.Interface {
       ILiFi.BridgeDataStruct,
       LibSwap.SwapDataStruct[],
       StargateDataStruct,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
   ): string;
@@ -223,6 +224,7 @@ export interface BridgeCallerFacet extends BaseContract {
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -233,6 +235,7 @@ export interface BridgeCallerFacet extends BaseContract {
     _bridgeData: ILiFi.BridgeDataStruct,
     _swapData: LibSwap.SwapDataStruct[],
     _stargateData: StargateDataStruct,
+    inPrice: PromiseOrValue<BigNumberish>,
     signature: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -243,6 +246,7 @@ export interface BridgeCallerFacet extends BaseContract {
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -269,6 +273,7 @@ export interface BridgeCallerFacet extends BaseContract {
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -280,6 +285,7 @@ export interface BridgeCallerFacet extends BaseContract {
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

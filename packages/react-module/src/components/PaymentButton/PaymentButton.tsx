@@ -206,6 +206,21 @@ const PaymentButton: FC<PaymentButton> = ({
         if (isBridged) {
             const nonce = await axios.get(`https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getNonce/${account}`);
 
+            setSwapData({
+                inToken: {
+                    address: coin.id,
+                    symbol: coin.symbol,
+                    decimals: coin.decimals,
+                },
+                inAmount: coin.toPay.toString(),
+                outToken: {
+                    address: destToken,
+                    symbol: destTokenSymbol,
+                    decimals: destTokenDecimals,
+                },
+                outAmount: price.toString(),
+            });
+
             _stepFunction[2] = async () => {
                 if (account == null) return;
                 const message = ethers.utils.toUtf8Bytes('Cicleo Bridged Payments\n\n'
@@ -239,7 +254,7 @@ const PaymentButton: FC<PaymentButton> = ({
                             name +
                             "\n" +
                             "Price: " +
-                            swapData.inAmount.toString() +
+                            price.toString() +
                             "\n" +
                             "Nonce: " +
                             nonce.data
@@ -283,13 +298,14 @@ const PaymentButton: FC<PaymentButton> = ({
                             [
                                 chainId,
                                 paymentManagerId,
-                                price,
+                                price.toString(),
                                 name,
                                 coin.id
                             ],
                             coin._bridgeData,
                             coin._swapData,
                             starGate,
+                            coin.toPay.toString(),
                             signature,
                             { value: nativePrice }
                         )
@@ -523,7 +539,9 @@ const PaymentButton: FC<PaymentButton> = ({
 							name={name}
 							handleBackToken={() => {
 								setArrowStep(3);
-								setCoin({} as coin);
+                                setCoin({} as coin);
+                                setStep(1);
+                                setSwapData(null);
 							}}
 							handleBackOnNetwork={() => {
 								console.log("ejhe");
@@ -649,7 +667,6 @@ const PaymentButton: FC<PaymentButton> = ({
 								step={step}
 								errorMessage={errorMessage}
 								stepFunction={stepFunction}
-								setStep={setStep}
 								isLoaded={isLoaded}
 								swapData={swapData}
 							/>

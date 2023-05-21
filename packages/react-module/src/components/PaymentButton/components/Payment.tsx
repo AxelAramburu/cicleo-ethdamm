@@ -222,7 +222,6 @@ type Payment = {
     isLoaded: boolean;
     step: number;
     swapData: any;
-    setStep: (step: number) => void;
     stepFunction: FunctionStep;
     errorMessage: string;
     loadingStep: number;
@@ -235,7 +234,6 @@ const Payment: FC<Payment> = ({
     isLoaded,
     step,
     swapData,
-    setStep,
     stepFunction,
     errorMessage,
     loadingStep,

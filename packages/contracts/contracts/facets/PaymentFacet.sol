@@ -112,7 +112,7 @@ contract PaymentFacet {
 
         distributeMoney(paymentManagerId, price);
 
-        emit PaymentDoneWithCicleo(paymentManagerId, msg.sender, nameOfPayment, balanceAfter - balanceBefore);
+        emit PaymentDoneWithCicleo(paymentManagerId, msg.sender, nameOfPayment, price);
     }
 
     //----Diamond storage functions-------------------------------------//

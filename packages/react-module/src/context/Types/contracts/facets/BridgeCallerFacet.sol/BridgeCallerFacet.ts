@@ -148,15 +148,13 @@ export declare namespace LibSwap {
 
 export interface BridgeCallerFacetInterface extends utils.Interface {
   functions: {
-    "lifi()": FunctionFragment;
-    "payWithCicleoWithBridge((uint256,uint256,uint256,string,address),(bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(address,address,address,address,uint256,bytes,bool)[],(uint256,uint256,uint256,uint256,address,bytes,bytes),bytes)": FunctionFragment;
+    "payWithCicleoWithBridge((uint256,uint256,uint256,string,address),(bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(address,address,address,address,uint256,bytes,bool)[],(uint256,uint256,uint256,uint256,address,bytes,bytes),uint256,bytes)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "lifi" | "payWithCicleoWithBridge"
+    nameOrSignatureOrTopic: "payWithCicleoWithBridge"
   ): FunctionFragment;
 
-  encodeFunctionData(functionFragment: "lifi", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "payWithCicleoWithBridge",
     values: [
@@ -164,11 +162,11 @@ export interface BridgeCallerFacetInterface extends utils.Interface {
       ILiFi.BridgeDataStruct,
       LibSwap.SwapDataStruct[],
       StargateDataStruct,
+      PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
   ): string;
 
-  decodeFunctionResult(functionFragment: "lifi", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "payWithCicleoWithBridge",
     data: BytesLike
@@ -221,37 +219,34 @@ export interface BridgeCallerFacet extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    lifi(overrides?: CallOverrides): Promise<[string]>;
-
     payWithCicleoWithBridge(
       paymentParams: PaymentParametersStruct,
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
-
-  lifi(overrides?: CallOverrides): Promise<string>;
 
   payWithCicleoWithBridge(
     paymentParams: PaymentParametersStruct,
     _bridgeData: ILiFi.BridgeDataStruct,
     _swapData: LibSwap.SwapDataStruct[],
     _stargateData: StargateDataStruct,
+    inPrice: PromiseOrValue<BigNumberish>,
     signature: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    lifi(overrides?: CallOverrides): Promise<string>;
-
     payWithCicleoWithBridge(
       paymentParams: PaymentParametersStruct,
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -273,26 +268,24 @@ export interface BridgeCallerFacet extends BaseContract {
   };
 
   estimateGas: {
-    lifi(overrides?: CallOverrides): Promise<BigNumber>;
-
     payWithCicleoWithBridge(
       paymentParams: PaymentParametersStruct,
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    lifi(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     payWithCicleoWithBridge(
       paymentParams: PaymentParametersStruct,
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
+      inPrice: PromiseOrValue<BigNumberish>,
       signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

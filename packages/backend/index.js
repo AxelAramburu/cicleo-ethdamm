@@ -114,6 +114,7 @@ app.post(
         );
 
         console.log(paymentManagerInfo);
+        console.log(coinData);
 
         const tokenOutAddress = paymentManagerInfo[0].paymentToken;
         const tokenOutAmount = BigNumber.from(req.body.tokenOutAmount);
@@ -123,6 +124,8 @@ app.post(
                 toDelete[i] = true;
                 continue;
             }
+
+            //console.log(coinData[i].id.toUpperCase(), tokenOutAddress.toUpperCase())
 
             if (coinData[i].id.toUpperCase() == tokenOutAddress.toUpperCase()) {
                 coinData[i].toPay = tokenOutAmount.toString();
@@ -135,7 +138,7 @@ app.post(
                     const quoteRequest = {
                         fromChain: req.params.fromChain,
                         fromToken: coinData[i].id,
-                        fromAddress: "0x2e7BcddCD74aDE69B67E816cB32dB6F0B709Cab5", //Use as refund address
+                        fromAddress: "0xfa5FF1747Df46e146A8cD85D6Bd9c115abF819Cd", //Use as refund address
                         toChain: req.params.paymentManagerChain,
                         toToken: tokenOutAddress,
                         toAmount: tokenOutAmount.toString(),

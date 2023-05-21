@@ -66,23 +66,24 @@ contract BridgeCallerFacet {
         address user,
         ILiFi.BridgeData memory _bridgeData,
         LibSwap.SwapData[] calldata _swapData,
-        StargateData memory _stargateData
+        StargateData memory _stargateData,
+        uint256 inPrice
     ) internal {
         uint256 balanceBefore = paymentParams.token.balanceOf(address(this));
 
         ILiFiDiamond lifi = ILiFiDiamond(0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE);
 
-        paymentParams.token.transferFrom(user, address(this), _bridgeData.minAmount);
+        paymentParams.token.transferFrom(user, address(this), inPrice);
 
         //Verify if we received correct amount of token
         require(
             paymentParams.token.balanceOf(address(this)) - balanceBefore >=
-                _bridgeData.minAmount,
+                inPrice,
             "Transfer failed"
         );
 
         //Approve the LiFi Diamond to spend the token
-        paymentParams.token.approve(address(lifi), _bridgeData.minAmount);
+        paymentParams.token.approve(address(lifi), inPrice);
 
         require(msg.value == _stargateData.lzFee, "Error msg.value");
 
@@ -109,6 +110,7 @@ contract BridgeCallerFacet {
         ILiFi.BridgeData memory _bridgeData,
         LibSwap.SwapData[] calldata _swapData,
         StargateData memory _stargateData,
+        uint256 inPrice,
         bytes calldata signature
     ) external payable {
         paymentParams.chainId = LibAdmin.getChainID();
@@ -121,7 +123,7 @@ contract BridgeCallerFacet {
             _stargateData.callData
         );
 
-        paymentWithBridge(paymentParams, msg.sender, _bridgeData, _swapData, _stargateData);
+        paymentWithBridge(paymentParams, msg.sender, _bridgeData, _swapData, _stargateData, inPrice);
 
         emit PaymentBridged(paymentParams.paymentManagerId, msg.sender, paymentParams.price, paymentParams.name);
     }

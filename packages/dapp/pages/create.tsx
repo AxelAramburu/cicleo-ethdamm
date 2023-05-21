@@ -3,9 +3,12 @@ import Layout from '@components/Layout'
 import { useState } from 'react'
 import { useNetwork, useContractWrite } from "wagmi"
 import { PaymentManagerFacet__factory } from '@context/Types'
+import { useRouter } from "next/router";
 
 const Home = () => {
-    const { write, isError, error } = useContractWrite({
+    const router = useRouter();
+    
+    const { writeAsync, isError, error, isSuccess } = useContractWrite({
         address: '0xA73a0d640d421e0800FDc041DA7bA954605E95D6',
         abi: PaymentManagerFacet__factory.abi,
         functionName: 'createPaymentManager',
@@ -22,10 +25,12 @@ const Home = () => {
 
         console.log(token)
 
-        await write({
+        await writeAsync({
             //@ts-ignore
             args: [name, token, treasury],
         });
+
+        router.push('/')
     }
 
     return (
@@ -62,8 +67,6 @@ const Home = () => {
                         <button className='btn btn-primary !mt-8'>Create !</button>
                     </form>
                 </div>
-                
-
             </div>
         </Layout>
     )

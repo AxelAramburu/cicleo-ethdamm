@@ -1,10 +1,10 @@
 const ethers = require("ethers");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const axios = require("axios");
-const factoryABI = require("./ABI/factory.json");
-const erc20ABI = require("./ABI/erc20.json");
+const PaymentManagerFacet = require("./ABI/PaymentManagerFacet.json");
 const Sentry = require("@sentry/node");
 const chains = require("@wagmi/chains");
+const { stringify } = require("querystring");
 
 require("dotenv").config();
 
@@ -44,12 +44,14 @@ async function main() {
     });
 
     lastScannedBlock = lastScannedBlock.blockNumber;
-    //lastScannedBlock =  60757618;
+    //lastScannedBlock = 62793636;
 
     const fixAddress = (address) => {
         address = address.substring(address.length - 40);
         return "0X" + address.toUpperCase();
     };
+
+    const diamondAddress = "0xA73a0d640d421e0800FDc041DA7bA954605E95D6";
 
     while (true) {
         const lastBlock = await customHttpProvider.getBlockNumber();
@@ -77,180 +79,74 @@ async function main() {
             toBlock: lastScannedBlock + gap,
             topics: [
                 [
-                    "0x2f5f2ee5aa57a7095e4d595ee43379ebe9db86f64a35c08ec2b2f345564c52c7", //PaymentSubscription
+                    "0x2f5f2ee5aa57a7095e4d595ee43379ebe9db86f64a35c08ec2b2f345564c52c7", //PaymentDoneWithCicleo
                 ],
                 null,
                 null,
             ],
-            address: routerAddress,
+            address: diamondAddress,
         });
 
         console.log(logsRaw.length);
 
+        const diamond = new ethers.Contract(
+            diamondAddress,
+            PaymentManagerFacet,
+            customHttpProvider
+        );
+
         for (i = 0; i < logsRaw.length; i++) {
-            const subManagerId = Number(logsRaw[i].topics[1]);
+            console.log(logsRaw[i])
+            const paymentManagerId = Number(logsRaw[i].topics[1]);
             
-
-            console.log(subManagerId)
-
-            const subManager = await subscriptionManager.findOne({
-                id: subManagerId,
-                blockchain: Number(process.env.CHAIN_ID),
-            });
-
-            if (subManager == null) continue;
+            console.log(paymentManagerId);
             
             const address = fixAddress(logsRaw[i].topics[2]);
 
-            //PaymentSubscription
+            //PaymentDoneWithCicleo
             if (
                 logsRaw[i].topics[0] ==
-                "0x9a609a853c9e2ab0e30b81e8dd73c72d48e2842194767c532f778ad9b3591253"
+                "0x2f5f2ee5aa57a7095e4d595ee43379ebe9db86f64a35c08ec2b2f345564c52c7"
             ) {
-                console.log("PaymentSubscription");
+                console.log("PaymentDoneWithCicleo");
 
+                const name = logsRaw[i].topics[2];
+
+                console.log("jdfjdj")
+
+                let abi = [
+                    "event PaymentDoneWithCicleo(uint256 indexed paymentManagerId,address indexed user,string indexed nameOfPayment,uint256 price);"
+                ];
+
+                let iface = new ethers.utils.Interface(abi)
+
+                let decodedRetVal = iface.decodeEventLog("PaymentDoneWithCicleo", logsRaw[i].data, logsRaw[i].topics)
+
+                const info = await diamond.getPaymentManagerInfo(paymentManagerId);
+
+                const data = {
+                    embeds: [
+                      {
+                        title: "New Payment",
+                        description: `${address} have done a ${ethers.utils.formatUnits(decodedRetVal.price, info[1])} ${info[2]} payment !`,
+                        color: 5814783
+                      }
+                    ],
+                    attachments: []
+                }
+
+                await axios.post(process.env.DISCORD_WEBHOOK, data)
+              
                 await logs.insertOne({
                     user: address,
                     action: "payment",
                     date: Date.now() / 1000,
-                    subscriptionManagerId: subManagerId,
+                    paymentManagerId: paymentManagerId,
                     blockchain: Number(process.env.CHAIN_ID),
-                    subscriptionId: Number(logsRaw[i].topics[3]),
-                    price: Number(logsRaw[i].data),
-                    paymentBlockchain: Number(process.env.CHAIN_ID),
+                    name: name,
+                    price: decodedRetVal.price.toString(),
                 });
-
-            //UserEdited
-            } else if (
-                logsRaw[i].topics[0] ==
-                "0xfcda9f876b19b1444bd7bbe7732cf0c2eb5764f619714c9d7a7d6e75f87e1c18"
-            ) {
-                console.log("UserEdited");
-
-                if (subManager.url != null) {
-                    try {
-                        await axios.post(subManager.url, {
-                            address: address.toUpperCase(),
-                            subscriptionId: Number(logsRaw[i].topics[3]),
-                            secret: subManager.secret,
-                            endTime: Number(logsRaw[i].data),
-                        });
-                    } catch (error) {
-                        try {
-                            await axios.post(subManager.url, {
-                                address: address.toUpperCase(),
-                                subscriptionId: Number(logsRaw[i].topics[3]),
-                                secret: subManager.secret,
-                                endTime: Number(logsRaw[i].data),
-                            });
-                        } catch (error) {
-                            console.log(error);
-                        }
-                    }
-                }
-
-                const query = await user.findOne({
-                    address: address,
-                    blockchain: Number(process.env.CHAIN_ID),
-                    subscriptionManagerId: subManagerId,
-                });
-                if (query == null) {
-                    let infoToInsert = {
-                        address: address,
-                        blockchain: Number(process.env.CHAIN_ID),
-                        subscriptionId: Number(logsRaw[i].topics[3]),
-                        subscriptionManagerId: subManagerId,
-                        triedRenew: false,
-                        endSubscription: Number(logsRaw[i].data),
-                        isCanceled: false,
-                    };
-
-                    if (Number(logsRaw[i].topics[3]) == 255) {
-                        for (let j = 0; j < logsRaw.length; j++) {  
-                            if (
-                                logsRaw[j].topics[0] ==
-                                "0x9a609a853c9e2ab0e30b81e8dd73c72d48e2842194767c532f778ad9b3591253"
-                            ) {
-                                infoToInsert.subscriptionPrice = Number(logsRaw[j].data)
-                            }
-                        }
-                    }
-
-                    await user.insertOne(infoToInsert);
-
-                    await logs.insertOne({
-                        user: address,
-                        action: "newSubscriber",
-                        date: Date.now() / 1000,
-                        subscriptionManagerId: subManagerId,
-                        blockchain: Number(process.env.CHAIN_ID),
-                        subscriptionId: Number(logsRaw[i].topics[3]),
-                        tokenPaymentAddress: "",
-                        tokenPaymentSymbol: "",
-                    });
-                } else {
-                    let infoToUpdate = {
-                        triedRenew: false,
-                        isCanceled: false,
-                        endSubscription: Number(logsRaw[i].data),
-                        subscriptionId: Number(logsRaw[i].topics[3]),
-                    };
-
-                    if (Number(logsRaw[i].topics[3]) == 255) {
-                        for (let j = 0; j < logsRaw.length; j++) {  
-                            if (
-                                logsRaw[j].topics[0] ==
-                                "0x9a609a853c9e2ab0e30b81e8dd73c72d48e2842194767c532f778ad9b3591253"
-                            ) {
-                                infoToUpdate.subscriptionPrice = Number(logsRaw[j].data)
-                            }
-                        }
-                    }
-
-                    await user.updateOne(
-                        {
-                            address: address,
-                            blockchain: Number(process.env.CHAIN_ID),
-                            subscriptionManagerId: subManagerId,
-                        },
-                        {
-                            $set: infoToUpdate,
-                        }
-                    );
-                }
-
-                //SelectToken
-            } else if (
-                logsRaw[i].topics[0] ==
-                "0x74c91477beff2e693b50864f8f539037dae74fee2710b1fc6a9da5634c86a326"
-            ) {
-                console.log("SelectToken");
-
-                const erc20Contract = new ethers.Contract(
-                    fixAddress(logsRaw[i].topics[3]).toLowerCase(),
-                    erc20ABI,
-                    customHttpProvider
-                );
-
-                const symbol = await erc20Contract.symbol();
-
-                await user.updateOne(
-                    {
-                        address: address,
-                        blockchain: Number(process.env.CHAIN_ID),
-                        subscriptionManagerId: subManagerId,
-                    },
-                    {
-                        $set: {
-                            tokenPaymentAddress: fixAddress(
-                                logsRaw[i].topics[3]
-                            ),
-                            tokenPaymentSymbol: symbol,
-                        },
-                    }
-                );
-                ``;
-            }
+            } 
         }
 
         lastScannedBlock += gap + 1;
@@ -264,7 +160,7 @@ async function main() {
         await lastScaned.updateOne(
             {
                 blockchain: Number(process.env.CHAIN_ID),
-                type: "logs",
+                type: "logs-payment",
             },
             update
         );
