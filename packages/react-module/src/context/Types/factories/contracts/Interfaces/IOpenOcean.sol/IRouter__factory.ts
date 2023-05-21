@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IRouter,
   IRouterInterface,
-} from "../../../../contracts/interfaces/IOpenOcean.sol/IRouter";
+} from "../../../../contracts/Interfaces/IOpenOcean.sol/IRouter";
 
 const _abi = [
   {

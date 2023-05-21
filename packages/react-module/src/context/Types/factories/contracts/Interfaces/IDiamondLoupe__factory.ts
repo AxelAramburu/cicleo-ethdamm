@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IDiamondLoupe,
   IDiamondLoupeInterface,
-} from "../../../contracts/interfaces/IDiamondLoupe";
+} from "../../../contracts/Interfaces/IDiamondLoupe";
 
 const _abi = [
   {

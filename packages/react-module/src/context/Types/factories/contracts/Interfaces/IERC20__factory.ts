@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IERC20,
   IERC20Interface,
-} from "../../../contracts/interfaces/IERC20";
+} from "../../../contracts/Interfaces/IERC20";
 
 const _abi = [
   {

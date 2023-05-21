@@ -7,7 +7,7 @@ import type { PromiseOrValue } from "../../../common";
 import type {
   FakeUSDC,
   FakeUSDCInterface,
-} from "../../../contracts/test/FakeUSDC";
+} from "../../../contracts/Test/FakeUSDC";
 
 const _abi = [
   {

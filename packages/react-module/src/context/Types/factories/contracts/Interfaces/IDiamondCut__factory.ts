@@ -7,7 +7,7 @@ import type { Provider } from "@ethersproject/providers";
 import type {
   IDiamondCut,
   IDiamondCutInterface,
-} from "../../../contracts/interfaces/IDiamondCut";
+} from "../../../contracts/Interfaces/IDiamondCut";
 
 const _abi = [
   {
