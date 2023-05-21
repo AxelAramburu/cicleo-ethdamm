@@ -11,7 +11,10 @@ import {
 	HeaderSubscriptionInfo,
 	Payment,
 } from "./components";
-import { PaymentFacet__factory } from "@context/Types";
+import {
+    PaymentFacet__factory,
+    BridgeCallerFacet__factory
+ } from "@context/Types";
 
 import axios from "axios";
 import {
@@ -200,21 +203,20 @@ const PaymentButton: FC<PaymentButton> = ({
 			2: async () => {},
 		};
 
-		if (isBridged) {
-			setSwapData({
-				inToken: {
-					address: coin.id,
-					symbol: coin.symbol,
-					decimals: coin.decimals,
-				},
-				inAmount: coin.toPay,
-				outToken: {
-					address: destToken,
-					symbol: destTokenSymbol,
-					decimals: destTokenDecimals,
-				},
-				outAmount: price.toString(),
-			});
+            const nonce = await axios.get(`https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getNonce/${account}`);
+
+            _stepFunction[2] = async () => {
+                try {
+                    if (account == null) return;
+                    const message = ethers.utils.toUtf8Bytes('Cicleo Bridged Payments\n\n'
+                        + 'Chain: ' + chainId + '\n'
+                        + 'User: ' + account.toLowerCase() + '\n'
+                        + 'Payment Manager: ' + paymentManagerId + '\n'
+                        + 'Name: ' + name + '\n'
+                        + 'Price: ' + price.toString() + '\n'
+                        + 'Nonce: ' + nonce.data )
+                    
+                    console.log(ethers.utils.keccak256(message))
 
 			_stepFunction[2] = async () => {
 				try {
@@ -242,9 +244,13 @@ const PaymentButton: FC<PaymentButton> = ({
 
 					console.log(ethers.utils.keccak256(message));
 
-					let signature = await signMessage({
-						message: message,
-					});
+                    const { v, r, s } = ethers.utils.splitSignature(signature)
+                    const adjustedV = _adjustV(v)
+                    signature = ethers.utils.joinSignature({ r, s, v: adjustedV }) as any
+                    
+                    console.log('Sign')
+                    console.log(signature)
+                    //console.log(coin._stargateData)
 
 					function _adjustV(v: number): number {
 						if (v === 0) {
@@ -260,12 +266,27 @@ const PaymentButton: FC<PaymentButton> = ({
 					const adjustedV = _adjustV(v);
 					signature = ethers.utils.joinSignature({ r, s, v: adjustedV }) as any;
 
-					console.log(coin._stargateData);
+                    const signer = await fetchSigner()
+        
+                    const _bridge = getContract({ address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6", abi: BridgeCallerFacet__factory.abi, signerOrProvider: signer as Signer })
 
-					// @ts-ignore
-					const nativePrice = BigNumber.from(coin._stargateData[3].hex)
-						.mul(12)
-						.div(10);
+                    const tx = await _bridge.payWithCicleoWithBridge(
+                        //@ts-ignore
+                        [
+                            chainId,
+                            paymentManagerId,
+                            price,
+                            name,
+                            coin.id
+                        ],
+                        coin._bridgeData,
+                        coin._swapData,
+                        starGate,
+                        signature,
+                        { value: nativePrice }
+                    )
+            
+                    setLoadingStep(3);
 
 					let starGate: any = coin._stargateData;
 					starGate[3] = nativePrice.toString() as any;

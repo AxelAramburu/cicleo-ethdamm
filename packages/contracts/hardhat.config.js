@@ -39,6 +39,11 @@ module.exports = {
             url: 'https://rpc.ftm.tools/',
             accounts: [process.env.PRIVATE_KEY],
             chainId: 250,
+        },
+        polygon: {
+            url: 'https://rpc-mainnet.maticvigil.com/',
+            accounts: [process.env.PRIVATE_KEY],
+            chainId: 137,
         }
     },
     settings: {

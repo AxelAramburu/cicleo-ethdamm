@@ -13,11 +13,7 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { FunctionFragment, Result } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -26,28 +22,6 @@ import type {
   OnEvent,
   PromiseOrValue,
 } from "../../../common";
-
-export type PaymentParametersStruct = {
-  chainId: PromiseOrValue<BigNumberish>;
-  paymentManagerId: PromiseOrValue<BigNumberish>;
-  price: PromiseOrValue<BigNumberish>;
-  name: PromiseOrValue<string>;
-  token: PromiseOrValue<string>;
-};
-
-export type PaymentParametersStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string,
-  string
-] & {
-  chainId: BigNumber;
-  paymentManagerId: BigNumber;
-  price: BigNumber;
-  name: string;
-  token: string;
-};
 
 export type StargateDataStruct = {
   dstPoolId: PromiseOrValue<BigNumberish>;
@@ -146,57 +120,59 @@ export declare namespace LibSwap {
   };
 }
 
-export interface BridgeCallerFacetInterface extends utils.Interface {
+export interface ILiFiDiamondInterface extends utils.Interface {
   functions: {
-    "payWithCicleoWithBridge((uint256,uint256,uint256,string,address),(bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(address,address,address,address,uint256,bytes,bool)[],(uint256,uint256,uint256,uint256,address,bytes,bytes),bytes)": FunctionFragment;
+    "startBridgeTokensViaStargate((bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(uint256,uint256,uint256,uint256,address,bytes,bytes))": FunctionFragment;
+    "swapAndStartBridgeTokensViaStargate((bytes32,string,string,address,address,address,uint256,uint256,bool,bool),(address,address,address,address,uint256,bytes,bool)[],(uint256,uint256,uint256,uint256,address,bytes,bytes))": FunctionFragment;
+    "validateDestinationCalldata(bytes,bytes)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "payWithCicleoWithBridge"
+    nameOrSignatureOrTopic:
+      | "startBridgeTokensViaStargate"
+      | "swapAndStartBridgeTokensViaStargate"
+      | "validateDestinationCalldata"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "payWithCicleoWithBridge",
+    functionFragment: "startBridgeTokensViaStargate",
+    values: [ILiFi.BridgeDataStruct, StargateDataStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "swapAndStartBridgeTokensViaStargate",
     values: [
-      PaymentParametersStruct,
       ILiFi.BridgeDataStruct,
       LibSwap.SwapDataStruct[],
-      StargateDataStruct,
-      PromiseOrValue<BytesLike>
+      StargateDataStruct
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "validateDestinationCalldata",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "payWithCicleoWithBridge",
+    functionFragment: "startBridgeTokensViaStargate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "swapAndStartBridgeTokensViaStargate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "validateDestinationCalldata",
     data: BytesLike
   ): Result;
 
-  events: {
-    "PaymentBridged(uint256,address,uint256,string)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "PaymentBridged"): EventFragment;
+  events: {};
 }
 
-export interface PaymentBridgedEventObject {
-  paymentManagerId: BigNumber;
-  user: string;
-  price: BigNumber;
-  name: string;
-}
-export type PaymentBridgedEvent = TypedEvent<
-  [BigNumber, string, BigNumber, string],
-  PaymentBridgedEventObject
->;
-
-export type PaymentBridgedEventFilter = TypedEventFilter<PaymentBridgedEvent>;
-
-export interface BridgeCallerFacet extends BaseContract {
+export interface ILiFiDiamond extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: BridgeCallerFacetInterface;
+  interface: ILiFiDiamondInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -218,70 +194,107 @@ export interface BridgeCallerFacet extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    payWithCicleoWithBridge(
-      paymentParams: PaymentParametersStruct,
+    startBridgeTokensViaStargate(
+      _bridgeData: ILiFi.BridgeDataStruct,
+      _stargateData: StargateDataStruct,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    swapAndStartBridgeTokensViaStargate(
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
-      signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    validateDestinationCalldata(
+      data: PromiseOrValue<BytesLike>,
+      dstCalldata: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[boolean] & { isValid: boolean }>;
   };
 
-  payWithCicleoWithBridge(
-    paymentParams: PaymentParametersStruct,
+  startBridgeTokensViaStargate(
     _bridgeData: ILiFi.BridgeDataStruct,
-    _swapData: LibSwap.SwapDataStruct[],
     _stargateData: StargateDataStruct,
-    signature: PromiseOrValue<BytesLike>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  swapAndStartBridgeTokensViaStargate(
+    _bridgeData: ILiFi.BridgeDataStruct,
+    _swapData: LibSwap.SwapDataStruct[],
+    _stargateData: StargateDataStruct,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  validateDestinationCalldata(
+    data: PromiseOrValue<BytesLike>,
+    dstCalldata: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   callStatic: {
-    payWithCicleoWithBridge(
-      paymentParams: PaymentParametersStruct,
+    startBridgeTokensViaStargate(
       _bridgeData: ILiFi.BridgeDataStruct,
-      _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
-      signature: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<void>;
-  };
 
-  filters: {
-    "PaymentBridged(uint256,address,uint256,string)"(
-      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
-      user?: PromiseOrValue<string> | null,
-      price?: PromiseOrValue<BigNumberish> | null,
-      name?: null
-    ): PaymentBridgedEventFilter;
-    PaymentBridged(
-      paymentManagerId?: PromiseOrValue<BigNumberish> | null,
-      user?: PromiseOrValue<string> | null,
-      price?: PromiseOrValue<BigNumberish> | null,
-      name?: null
-    ): PaymentBridgedEventFilter;
-  };
-
-  estimateGas: {
-    payWithCicleoWithBridge(
-      paymentParams: PaymentParametersStruct,
+    swapAndStartBridgeTokensViaStargate(
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
-      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    validateDestinationCalldata(
+      data: PromiseOrValue<BytesLike>,
+      dstCalldata: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+  };
+
+  filters: {};
+
+  estimateGas: {
+    startBridgeTokensViaStargate(
+      _bridgeData: ILiFi.BridgeDataStruct,
+      _stargateData: StargateDataStruct,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    swapAndStartBridgeTokensViaStargate(
+      _bridgeData: ILiFi.BridgeDataStruct,
+      _swapData: LibSwap.SwapDataStruct[],
+      _stargateData: StargateDataStruct,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    validateDestinationCalldata(
+      data: PromiseOrValue<BytesLike>,
+      dstCalldata: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    payWithCicleoWithBridge(
-      paymentParams: PaymentParametersStruct,
+    startBridgeTokensViaStargate(
+      _bridgeData: ILiFi.BridgeDataStruct,
+      _stargateData: StargateDataStruct,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    swapAndStartBridgeTokensViaStargate(
       _bridgeData: ILiFi.BridgeDataStruct,
       _swapData: LibSwap.SwapDataStruct[],
       _stargateData: StargateDataStruct,
-      signature: PromiseOrValue<BytesLike>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    validateDestinationCalldata(
+      data: PromiseOrValue<BytesLike>,
+      dstCalldata: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

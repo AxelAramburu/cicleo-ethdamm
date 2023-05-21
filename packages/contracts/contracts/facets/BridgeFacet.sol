@@ -28,7 +28,6 @@ contract BridgeFacet {
 
     //----Event----------------------------------------------//
 
-    /// @notice Event when a user pays (on payment manager chain)
     event PaymentDoneWithCicleo(
         uint256 indexed paymentManagerId,
         address indexed user,
@@ -275,6 +274,13 @@ contract BridgeFacet {
         );
 
 
+
+        emit PaymentDoneWithCicleo(
+            paymentParams.paymentManagerId,
+            user,
+            paymentParams.name,
+            paymentParams.price
+        );
     }
 
     //----Get Functions----------------------------------------------//

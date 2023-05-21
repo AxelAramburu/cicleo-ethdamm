@@ -49,9 +49,6 @@ struct UserBridgeData {
 /// @author Pol Epie
 /// @notice This contract is used to permit the payment via LiFi
 contract BridgeCallerFacet {
-    /// @notice lifi diamond to bridge
-    ILiFiDiamond public lifi = ILiFiDiamond(0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE);
-
     //-----Event----------------------------------------------//
 
     /// @notice Event when the payment bridged is emited (on client payment chain so)
@@ -72,6 +69,8 @@ contract BridgeCallerFacet {
         StargateData memory _stargateData
     ) internal {
         uint256 balanceBefore = paymentParams.token.balanceOf(address(this));
+
+        ILiFiDiamond lifi = ILiFiDiamond(0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE);
 
         paymentParams.token.transferFrom(user, address(this), _bridgeData.minAmount);
 

@@ -69,6 +69,22 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AdminFacet__factory>;
     getContractFactory(
+      name: "BridgeCallerFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BridgeCallerFacet__factory>;
+    getContractFactory(
+      name: "ICicleoRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ICicleoRouter__factory>;
+    getContractFactory(
+      name: "ILiFiDiamond",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILiFiDiamond__factory>;
+    getContractFactory(
+      name: "BridgeFacet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BridgeFacet__factory>;
+    getContractFactory(
       name: "DiamondCutFacet",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DiamondCutFacet__factory>;
@@ -105,6 +121,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
+      name: "ILiFi",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILiFi__factory>;
+    getContractFactory(
       name: "IOpenOceanCaller",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IOpenOceanCaller__factory>;
@@ -112,6 +132,10 @@ declare module "hardhat/types/runtime" {
       name: "IRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IRouter__factory>;
+    getContractFactory(
+      name: "LibBridgeCaller",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LibBridgeCaller__factory>;
     getContractFactory(
       name: "LibDiamond",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -200,6 +224,26 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.AdminFacet>;
     getContractAt(
+      name: "BridgeCallerFacet",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BridgeCallerFacet>;
+    getContractAt(
+      name: "ICicleoRouter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ICicleoRouter>;
+    getContractAt(
+      name: "ILiFiDiamond",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILiFiDiamond>;
+    getContractAt(
+      name: "BridgeFacet",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BridgeFacet>;
+    getContractAt(
       name: "DiamondCutFacet",
       address: string,
       signer?: ethers.Signer
@@ -245,6 +289,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
     getContractAt(
+      name: "ILiFi",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILiFi>;
+    getContractAt(
       name: "IOpenOceanCaller",
       address: string,
       signer?: ethers.Signer
@@ -254,6 +303,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IRouter>;
+    getContractAt(
+      name: "LibBridgeCaller",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LibBridgeCaller>;
     getContractAt(
       name: "LibDiamond",
       address: string,

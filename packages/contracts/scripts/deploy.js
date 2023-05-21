@@ -39,6 +39,8 @@ async function deployDiamond() {
         "AdminFacet",
         "PaymentFacet",
         "PaymentManagerFacet",
+        "BridgeCallerFacet",
+        "BridgeFacet",
     ];
     const cut = [];
     for (const FacetName of FacetNames) {
