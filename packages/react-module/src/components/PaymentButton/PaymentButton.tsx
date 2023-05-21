@@ -118,7 +118,6 @@ const PaymentButton: FC<PaymentButton> = ({
     const [stepFunction, setStepFunction] = useState<FunctionStep>({} as FunctionStep)
     const [isPurchased, setIsPurchased] = useState(false);
     const [swapData, setSwapData] = useState<any>(null);
-    const [tokenApproval, setTokenApproval] = useState(BigNumber.from(0));
 	const [paymentInfoIsFetched, setPaymentInfoIsFetched] = useState(false);
 	const [handleEmail, setHandleEmail] = useState(false);
 	const [userMail, setUserMail] = useState("");
@@ -163,8 +162,6 @@ const PaymentButton: FC<PaymentButton> = ({
         
         setIsLoaded(true);
 
-        setTokenApproval(approval);
-
         const destToken = paymentManagerInfo[0][1].toLowerCase();
         const destTokenDecimals = paymentManagerInfo[1];
         const destTokenSymbol = paymentManagerInfo[2];
@@ -200,73 +197,14 @@ const PaymentButton: FC<PaymentButton> = ({
             }
         }
 
-        //If a swap is needed
-        if (destToken != coin.id.toLowerCase()) {
-            let data = JSON.stringify({
-                tokenIn: coin.id,
-                price: price.toString()
-            });
-
-            let config = {
-                method: "post",
-                maxBodyLength: Infinity,
-                url: `https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getExactPrice/${paymentManagerId}`,
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                data: data,
-            };
-
-            const resp = await axios(config);
-
-            console.log(resp.data)
-
-            setSwapData(resp.data);
-
-            let decodedData = openOceanIface.parseTransaction({
-                data: resp.data.data,
-                value: resp.data.value,
-            });
-
-            console.log("decodeddata");
-            console.log(decodedData);
-
-            _stepFunction[2] = async () => {
-                const pay = await prepareWriteContract({
-                    address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
-                    abi: PaymentFacet__factory.abi,
-                    functionName: "payWithCicleoWithSwap",
-                    args: [
-                        //@ts-ignore
-                        paymentManagerId,
-                        price,
-                        name,
-                        decodedData.args.caller, decodedData.args.desc, decodedData.args.calls
-                    ],
-                });
-
-                setLoadingStep(2);
-
-                try {
-                    const tx = await writeContract(pay);
-
-                    console.log(tx);
-
-                    await tx.wait();
-
-                    setIsPurchased(true);
-                } catch (error: any) {
-                    setErrorMessage(error.message);
-                }
-            }
-        } else {
+        if (isBridged) {
             setSwapData({
                 inToken: {
-                    address: destToken,
-                    symbol: destTokenSymbol,
-                    decimals: destTokenDecimals,
+                    address: coin.id,
+                    symbol: coin.symbol,
+                    decimals: coin.decimals,
                 },
-                inAmount: price.toString(),
+                inAmount: coin.toPay,
                 outToken: {
                     address: destToken,
                     symbol: destTokenSymbol,
@@ -276,34 +214,195 @@ const PaymentButton: FC<PaymentButton> = ({
             });
 
             _stepFunction[2] = async () => {
-                const pay = await prepareWriteContract({
-                    address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
-                    abi: PaymentFacet__factory.abi,
-                    // @ts-ignore
-                    functionName: "payWithCicleo",
-                    args: [
-                        //@ts-ignore
-                        paymentManagerId, price.toString(), name
-                    ],
-                });
-
-                setLoadingStep(2);
-
                 try {
-                    const tx = await writeContract(pay);
+                    if (account == null) return;
+                    const message = ethers.utils.toUtf8Bytes('Cicleo Bridged Payments\n\n'
+                        + 'Chain: ' + chainId + '\n'
+                        + 'User: ' + account.toLowerCase() + '\n'
+                        + 'Payment Manager: ' + paymentManagerId + '\n'
+                        + 'Subscription: ' + subscriptionId + '\n'
+                        + 'Price: ' + subscription.originalUserPrice.toString() + '\n'
+                        + 'Nonce: ' + 0)
+                    
+                    console.log(ethers.utils.keccak256(message))
 
-                    console.log(tx);
+                    let signature = await signMessage({
+                        message: message
+                    })
 
-                    await tx.wait();
+                    function _adjustV(v: number): number {
+                        if (v === 0) {
+                            return 27
+                        } else if (v === 1) {
+                            return 28
+                        } else {
+                            return v
+                        }
+                    }
 
+                    const { v, r, s } = ethers.utils.splitSignature(signature)
+                    const adjustedV = _adjustV(v)
+                    signature = ethers.utils.joinSignature({ r, s, v: adjustedV }) as any
+                    
+                    console.log(coin._stargateData)
+
+                    // @ts-ignore
+                    const nativePrice = BigNumber.from(coin._stargateData[3].hex).mul(12).div(10)
+
+                    let starGate: any = coin._stargateData
+                    starGate[3] = nativePrice.toString() as any
+
+                    const signer = await fetchSigner()
+        
+                    const _bridge = getContract({ address: bridge, abi: CicleoSubscriptionBridgeManager__factory.abi, signerOrProvider: signer as Signer })
+
+                    const tx = await _bridge.payFunctionWithBridge(
+                        //@ts-ignore
+                        [
+                            BigNumber.from(chainId),
+                            BigNumber.from(subManagerId),
+                            subscriptionId,
+                            subscription.originalUserPrice.toString(),
+                            coin.id
+                        ],
+                        coin._bridgeData,
+                        coin._swapData,
+                        starGate,
+                        referral != undefined ? referral : ethers.constants.AddressZero,
+                        subManager.duration,
+                        signature,
+                        { value: nativePrice }
+                    )
+            
+                    setLoadingStep(3);
+
+                    const transac = await tx.wait()
+
+                    console.log(transac)
+
+                    setErrorMessage("");
                     setIsPurchased(true);
                 } catch (error: any) {
-                    setErrorMessage(error.message);
-                }
+                    console.log(error);
+                    
+                    if (error.data && error.data.message) {
+                        return setErrorMessage(error.data.message);
+                    }
+                    if (error.message) {
+                        return setErrorMessage(error.message);
+                    }
 
-                
+                    
+                    return
+                }
+            }
+
+        } else {
+            //If a swap is needed
+            if (destToken != coin.id.toLowerCase()) {
+                let data = JSON.stringify({
+                    tokenIn: coin.id,
+                    price: price.toString()
+                });
+
+                let config = {
+                    method: "post",
+                    maxBodyLength: Infinity,
+                    url: `https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getExactPrice/${paymentManagerId}`,
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    data: data,
+                };
+
+                const resp = await axios(config);
+
+                console.log(resp.data)
+
+                setSwapData(resp.data);
+
+                let decodedData = openOceanIface.parseTransaction({
+                    data: resp.data.data,
+                    value: resp.data.value,
+                });
+
+                console.log("decodeddata");
+                console.log(decodedData);
+
+                _stepFunction[2] = async () => {
+                    const pay = await prepareWriteContract({
+                        address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
+                        abi: PaymentFacet__factory.abi,
+                        functionName: "payWithCicleoWithSwap",
+                        args: [
+                            //@ts-ignore
+                            paymentManagerId,
+                            price,
+                            name,
+                            decodedData.args.caller, decodedData.args.desc, decodedData.args.calls
+                        ],
+                    });
+
+                    setLoadingStep(2);
+
+                    try {
+                        const tx = await writeContract(pay);
+
+                        console.log(tx);
+
+                        await tx.wait();
+
+                        setIsPurchased(true);
+                    } catch (error: any) {
+                        setErrorMessage(error.message);
+                    }
+                }
+            } else {
+                setSwapData({
+                    inToken: {
+                        address: destToken,
+                        symbol: destTokenSymbol,
+                        decimals: destTokenDecimals,
+                    },
+                    inAmount: price.toString(),
+                    outToken: {
+                        address: destToken,
+                        symbol: destTokenSymbol,
+                        decimals: destTokenDecimals,
+                    },
+                    outAmount: price.toString(),
+                });
+
+                _stepFunction[2] = async () => {
+                    const pay = await prepareWriteContract({
+                        address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
+                        abi: PaymentFacet__factory.abi,
+                        // @ts-ignore
+                        functionName: "payWithCicleo",
+                        args: [
+                            //@ts-ignore
+                            paymentManagerId, price.toString(), name
+                        ],
+                    });
+
+                    setLoadingStep(2);
+
+                    try {
+                        const tx = await writeContract(pay);
+
+                        console.log(tx);
+
+                        await tx.wait();
+
+                        setIsPurchased(true);
+                    } catch (error: any) {
+                        setErrorMessage(error.message);
+                    }
+                }
             }
         }
+
+        
 
         setStepFunction(_stepFunction as FunctionStep);
 
@@ -324,12 +423,16 @@ const PaymentButton: FC<PaymentButton> = ({
 		const account = getAccount();
 		const address = account.address;
 
-		if (!address) return;
+        if (!address) return;
+        
+        setIsLoaded(false);
 
 		const userInfo = await axios.post(
-			`https://cicleo-ethdamm-dapp.vercel.app/chain/${sourceChainId}/getUserInfo/${paymentManagerId}/${address}/${sourceChainId}`,
+			`https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getUserInfo/${paymentManagerId}/${address}/${sourceChainId}`,
 			{ tokenOutAmount: price.toString() }
-		);
+        );
+        
+        console.log(userInfo.data);
 
 		setCoinLists(userInfo.data.coinList);
 		setIsLoaded(true);
@@ -340,14 +443,13 @@ const PaymentButton: FC<PaymentButton> = ({
             `https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getPaymentManagerInfo/${paymentManagerId}`);
         
         console.log(paymentManagerInfo.data);
-	};
-	//@ts-ignore
-	const registerMail = (e) => {
-		setUserMail(e.target.value);
-	};
 
         setPaymentManagerInfo(paymentManagerInfo.data);
     }
+
+	const registerMail = (e: any) => {
+		setUserMail(e.target.value);
+	};
 
 	useEffect(() => {
 		getUserTokenList();
@@ -398,47 +500,49 @@ const PaymentButton: FC<PaymentButton> = ({
 					/>}
 					
 
-					{(() => {
-						if (account == null)
-							return (
-								<Login
-									handleSelectAccount={(address) => {
-										setAccount(address);
-									}}
-								/>
-							);
-						if (!handleEmail)
-							return (
-								<div className="cap-pt-4 cap-pb-6 cap-flex cap-flex-col cap-justify-center cap-align-center cap-items-center">
-									<div className="cap-flex cap-flex-col cap-justify-center cap-w-full cap-items-center cap-py-4">
-										<h3 className="cap-text-lg cap-font-bold">
-											Enter your mail
-										</h3>
-									</div>
-									<div className="cap-rounded-xl">
-										<input
-											type="email"
-											placeholder="example@example.com"
-											className="cap-input cap-input-bordered cap-w-full cap-max-w-xs"
-											value={userMail}
-											onChange={registerMail}
-										/>
-									</div>
-									<div className="cap-py-4">
-										<button
-											onClick={() => setHandleEmail(true)}
-											className="cap-btn cap-btn-primary cap-space-x-2 !cap-bg-primary !cap-text-white"
-										>
-											<span>Continue</span>
-										</button>
-									</div>
-								</div>
-							);
-						if (!networkSelected)
-							return (
-								<SelectNetwork
-									handleSelectNetwork={async (chainId: number) =>
-										setNetworkSelected(true)
+                    {(() => {
+                        if (account == null)
+                            return (
+                                <Login
+                                    handleSelectAccount={(address) => {
+                                        setAccount(address);
+                                    }}
+                                />
+                            );
+                        if (!handleEmail)
+                            return (
+                                <div className="cap-pt-4 cap-pb-6 cap-flex cap-flex-col cap-justify-center cap-align-center cap-items-center">
+                                    <div className="cap-flex cap-flex-col cap-justify-center cap-w-full cap-items-center cap-py-4">
+                                        <h3 className="cap-text-lg cap-font-bold">
+                                            Enter your mail
+                                        </h3>
+                                    </div>
+                                    <div className="cap-rounded-xl">
+                                        <input
+                                            type="email"
+                                            placeholder="example@example.com"
+                                            className="cap-input cap-input-bordered cap-w-full cap-max-w-xs"
+                                            value={userMail}
+                                            onChange={registerMail}
+                                        />
+                                    </div>
+                                    <div className="cap-py-4">
+                                        <button
+                                            onClick={() => setHandleEmail(true)}
+                                            className="cap-btn cap-btn-primary cap-space-x-2 !cap-bg-primary !cap-text-white"
+                                        >
+                                            <span>Continue</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        if (!networkSelected)
+                            return (
+                                <SelectNetwork
+                                    handleSelectNetwork={async (_chainId: number) => {
+                                        setNetworkSelected(true)
+                                        setIsBridged(chainId != _chainId)
+                                        }
 									}
 									_chains={_chains}
 								/>
@@ -457,7 +561,7 @@ const PaymentButton: FC<PaymentButton> = ({
                             return (
                                 <div className="cap-p-4 cap-space-y-8">
                                     <h2 className="cap-text-xl cap-font-semibold">
-                                        Thanks for your subscription!
+                                        Thanks for your Payment!
                                     </h2>
 
                                     <div className="cap-shadow-lg cap-alert cap-alert-success">

@@ -36,4 +36,9 @@ library LibPaymentManager {
         DiamondStorage storage ds = diamondStorage();
         return ds.paymentManagers[paymentManagerId];
     }  
+
+     function getPaymentManagerToken(uint256 paymentManagerId) internal view returns (IERC20) {
+        DiamondStorage storage ds = diamondStorage();
+        return ds.paymentManagers[paymentManagerId].paymentToken;
+    }  
 }   

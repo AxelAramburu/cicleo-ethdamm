@@ -21,6 +21,15 @@ library LibAdmin {
         CicleoPaymentSecurity securityContract;
     }
 
+    /// @notice Get chain id of the smartcontract
+    function getChainID() internal view returns (uint256) {
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        return id;
+    }
+
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
         bytes32 position = DIAMOND_STORAGE_POSITION;
         assembly {

@@ -11,7 +11,7 @@ async function deployDiamond() {
     console.log("");
     console.log("Deploying facets");
     const FacetNames = [
-        "PaymentFacet",
+        "BridgeCallerFacet",
     ];
     const cut = [];
     for (const FacetName of FacetNames) {
@@ -20,9 +20,9 @@ async function deployDiamond() {
         await facet.deployed();
         console.log(`${FacetName} deployed: ${facet.address}`);
         cut.push({
-        facetAddress: facet.address,
-        action: FacetCutAction.Add,
-        functionSelectors: getSelectors(facet),
+            facetAddress: facet.address,
+            action: FacetCutAction.Add,
+            functionSelectors: getSelectors(facet),
         });
     }
 }

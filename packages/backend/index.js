@@ -9,6 +9,7 @@ const { BigNumber, utils } = require("ethers");
 const PaymentManagerABI = require("./ABI/PaymentManagerFacet.json");
 const ERC20ABI = require("./ABI/ERC20.json");
 const STARGATEABI = require("./ABI/STARGATE.json");
+const BridgeFacetABI = require("./ABI/BridgeFacet.json");
 
 const asyncMiddleware = (fn) => (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch((err) => {
@@ -327,6 +328,27 @@ app.get(
         );
 
         res.send(paymentManagerInfo);
+    })
+);
+
+app.get(
+    "/chain/:blockchain/getNonce/:user",
+    asyncMiddleware(async (req, res, next) => {
+        const PROVIDER = new ethers.providers.JsonRpcProvider(
+            RPCs[req.params.blockchain]
+        );
+
+        const paymentManager = new ethers.Contract(
+            contracts[req.params.blockchain].diamond,
+            BridgeFacetABI,
+            PROVIDER
+        );
+
+        const nonce = await paymentManager.getUserNonce(
+            req.params.user
+        );
+
+        res.send(nonce.toString());
     })
 );
 
