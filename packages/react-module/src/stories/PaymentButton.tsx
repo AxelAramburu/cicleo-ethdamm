@@ -7,10 +7,10 @@ export const Page: React.FC = () => {
 	return (
 		<div>
 			<PaymentButton
-				chainId={137}
+				chainId={250}
 				paymentManagerId={1}
 				price={ethers.utils.parseUnits("1", 6)}
-				name="Payement1"
+				name="Payment1"
 			/>
 		</div>
 	);
