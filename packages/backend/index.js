@@ -22,18 +22,26 @@ const contracts = {
     250: {
         diamond: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6",
     },
+    137: {
+        diamond: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6"
+    },
+    43114: {
+        diamond: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6"
+    },
 };
 
 const openOceanBlockchain = {
     56: "bsc",
     250: "fantom",
     137: "matic",
+    43114: "avax",
 };
 
 const RPCs = {
     250: "https://rpcapi.fantom.network",
     56: "https://bsc-dataseed.binance.org",
     137: "https://rpc-mainnet.maticvigil.com",
+    43114: "https://api.avax.network/ext/bc/C/rpc",
 };
 
 const sleep = async (ms) => {
@@ -46,6 +54,7 @@ const tableChangeBlockchain = {
     56: "bsc",
     250: "ftm",
     137: "matic",
+    43114: "avax",
 };
 
 /* Express Part */

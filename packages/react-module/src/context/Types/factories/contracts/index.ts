@@ -4,7 +4,7 @@
 export * as diamondSol from "./Diamond.sol";
 export * as securitySol from "./Security.sol";
 export * as facets from "./facets";
-export * as interfaces from "./Interfaces";
+export * as interfaces from "./interfaces";
 export * as libraries from "./libraries";
-export * as test from "./Test";
+export * as test from "./test";
 export * as upgradeInitializers from "./upgradeInitializers";

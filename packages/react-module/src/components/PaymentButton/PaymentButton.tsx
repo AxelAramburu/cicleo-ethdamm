@@ -203,141 +203,115 @@ const PaymentButton: FC<PaymentButton> = ({
 			2: async () => {},
 		};
 
+        if (isBridged) {
             const nonce = await axios.get(`https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getNonce/${account}`);
 
             _stepFunction[2] = async () => {
-                try {
-                    if (account == null) return;
-                    const message = ethers.utils.toUtf8Bytes('Cicleo Bridged Payments\n\n'
-                        + 'Chain: ' + chainId + '\n'
-                        + 'User: ' + account.toLowerCase() + '\n'
-                        + 'Payment Manager: ' + paymentManagerId + '\n'
-                        + 'Name: ' + name + '\n'
-                        + 'Price: ' + price.toString() + '\n'
-                        + 'Nonce: ' + nonce.data )
+                if (account == null) return;
+                const message = ethers.utils.toUtf8Bytes('Cicleo Bridged Payments\n\n'
+                    + 'Chain: ' + chainId + '\n'
+                    + 'User: ' + account.toLowerCase() + '\n'
+                    + 'Payment Manager: ' + paymentManagerId + '\n'
+                    + 'Name: ' + name + '\n'
+                    + 'Price: ' + price.toString() + '\n'
+                    + 'Nonce: ' + nonce.data)
                     
-                    console.log(ethers.utils.keccak256(message))
+                console.log(ethers.utils.keccak256(message))
 
-			_stepFunction[2] = async () => {
-				try {
-					if (account == null) return;
-					const message = ethers.utils.toUtf8Bytes(
-						"Cicleo Bridged Payments\n\n" +
-							"Chain: " +
-							chainId +
-							"\n" +
-							"User: " +
-							account.toLowerCase() +
-							"\n" +
-							"Payment Manager: " +
-							paymentManagerId +
-							"\n" +
-							"Subscription: " +
-							subscriptionId +
-							"\n" +
-							"Price: " +
-							subscription.originalUserPrice.toString() +
-							"\n" +
-							"Nonce: " +
-							0
-					);
-
-					console.log(ethers.utils.keccak256(message));
-
-                    const { v, r, s } = ethers.utils.splitSignature(signature)
-                    const adjustedV = _adjustV(v)
-                    signature = ethers.utils.joinSignature({ r, s, v: adjustedV }) as any
+                _stepFunction[2] = async () => {
+                    try {
+                        if (account == null) return;
                     
-                    console.log('Sign')
-                    console.log(signature)
-                    //console.log(coin._stargateData)
+                        const nonce = await axios.get(`https://cicleo-ethdamm-dapp.vercel.app/chain/${chainId}/getNonce/${account}`);
 
-					function _adjustV(v: number): number {
-						if (v === 0) {
-							return 27;
-						} else if (v === 1) {
-							return 28;
-						} else {
-							return v;
-						}
-					}
+                        const message = ethers.utils.toUtf8Bytes(
+                            "Cicleo Bridged Payments\n\n" +
+                            "Chain: " +
+                            chainId +
+                            "\n" +
+                            "User: " +
+                            account.toLowerCase() +
+                            "\n" +
+                            "Payment Manager: " +
+                            paymentManagerId +
+                            "\n" +
+                            "Name: " +
+                            name +
+                            "\n" +
+                            "Price: " +
+                            swapData.inAmount.toString() +
+                            "\n" +
+                            "Nonce: " +
+                            nonce.data
+                        );
+                    
+                        if (account == null) return;
 
-					const { v, r, s } = ethers.utils.splitSignature(signature);
-					const adjustedV = _adjustV(v);
-					signature = ethers.utils.joinSignature({ r, s, v: adjustedV }) as any;
+                        let signature = await signMessage({
+                            message: message
+                        })
 
-                    const signer = await fetchSigner()
+
+                        // @ts-ignore
+                        const nativePrice = BigNumber.from(coin._stargateData[3].hex).mul(12).div(10)
+
+                        function _adjustV(v: number): number {
+                            if (v === 0) {
+                                return 27
+                            } else if (v === 1) {
+                                return 28
+                            } else {
+                                return v
+                            }
+                        }
         
-                    const _bridge = getContract({ address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6", abi: BridgeCallerFacet__factory.abi, signerOrProvider: signer as Signer })
+                        const { v, r, s } = ethers.utils.splitSignature(signature);
+                        const adjustedV = _adjustV(v);
+                        signature = ethers.utils.joinSignature({ r, s, v: adjustedV }) as any;
 
-                    const tx = await _bridge.payWithCicleoWithBridge(
-                        //@ts-ignore
-                        [
-                            chainId,
-                            paymentManagerId,
-                            price,
-                            name,
-                            coin.id
-                        ],
-                        coin._bridgeData,
-                        coin._swapData,
-                        starGate,
-                        signature,
-                        { value: nativePrice }
-                    )
-            
-                    setLoadingStep(3);
+                        const signer = await fetchSigner()
+        
+                        const _bridge = getContract({ address: "0xA73a0d640d421e0800FDc041DA7bA954605E95D6", abi: BridgeCallerFacet__factory.abi, signerOrProvider: signer as Signer })
 
-					let starGate: any = coin._stargateData;
-					starGate[3] = nativePrice.toString() as any;
+                        setLoadingStep(2);
 
-					const signer = await fetchSigner();
+                        let starGate: any = coin._stargateData;
+                        starGate[3] = nativePrice.toString() as any;
 
-					const _bridge = getContract({
-						address: bridge,
-						abi: CicleoSubscriptionBridgeManager__factory.abi,
-						signerOrProvider: signer as Signer,
-					});
+                        const tx = await _bridge.payWithCicleoWithBridge(
+                            //@ts-ignore
+                            [
+                                chainId,
+                                paymentManagerId,
+                                price,
+                                name,
+                                coin.id
+                            ],
+                            coin._bridgeData,
+                            coin._swapData,
+                            starGate,
+                            signature,
+                            { value: nativePrice }
+                        )
 
-					const tx = await _bridge.payFunctionWithBridge(
-						//@ts-ignore
-						[
-							BigNumber.from(chainId),
-							BigNumber.from(subManagerId),
-							subscriptionId,
-							subscription.originalUserPrice.toString(),
-							coin.id,
-						],
-						coin._bridgeData,
-						coin._swapData,
-						starGate,
-						referral != undefined ? referral : ethers.constants.AddressZero,
-						subManager.duration,
-						signature,
-						{ value: nativePrice }
-					);
+                        const transac = await tx.wait();
 
-					setLoadingStep(3);
+                        setErrorMessage("");
+                        setIsPurchased(true);
+                    } catch (error: any) {
+                        console.log(error);
 
-					const transac = await tx.wait();
+                        if (error.data && error.data.message) {
+                            return setErrorMessage(error.data.message);
+                        }
+                        if (error.message) {
+                            return setErrorMessage(error.message);
+                        }
 
-					console.log(transac);
-
-					setErrorMessage("");
-					setIsPurchased(true);
-				} catch (error: any) {
-					console.log(error);
-
-					if (error.data && error.data.message) {
-						return setErrorMessage(error.data.message);
-					}
-					if (error.message) {
-						return setErrorMessage(error.message);
-					}
-
-					return;
-				}
-			};
+                        return;
+                    }
+                };
+            }
 		} else {
 			//If a swap is needed
 			if (destToken != coin.id.toLowerCase()) {

@@ -44,6 +44,11 @@ module.exports = {
             url: 'https://rpc-mainnet.maticvigil.com/',
             accounts: [process.env.PRIVATE_KEY],
             chainId: 137,
+        },
+        avalanche: {
+            url: 'https://api.avax.network/ext/bc/C/rpc',
+            accounts: [process.env.PRIVATE_KEY],
+            chainId: 43114,
         }
     },
     settings: {
